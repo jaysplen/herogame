@@ -1,0 +1,50 @@
+# Local dev infrastructure for herogame PoC.
+# Usage: make dev  (or: docker compose up -d --wait)
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: herogame-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-herogame}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-herogame}
+      POSTGRES_DB: ${POSTGRES_DB:-herogame}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - herogame
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-herogame} -d ${POSTGRES_DB:-herogame}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7
+    container_name: herogame-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - herogame
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+networks:
+  herogame:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

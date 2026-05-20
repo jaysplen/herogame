@@ -30,6 +30,15 @@ herogame/
 
 **Executor agents** — pick a task marked **READY TO DELEGATE** in [docs/agent_tasks.md](docs/agent_tasks.md). Update [docs/changelog.md](docs/changelog.md) when you close a task.
 
+## Local dev (Postgres + Redis)
+
+```bash
+cp .env.example .env   # optional
+make dev               # docker compose up -d --wait; migrations when backend/migrations exists
+```
+
+Details: [docs/dev_setup.md](docs/dev_setup.md).
+
 ## Status
 
-**PoC v0.1** — documentation locked; backend and frontend code not yet implemented.
+**PoC v0.1** — docs locked; `make dev` (Postgres + Redis + migrations); backend HTTP (ALPHA-001). Run: `make dev` then `cd backend && DATABASE_URL=... go run ./cmd/server`. Frontend not yet implemented.

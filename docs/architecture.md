@@ -441,13 +441,13 @@ Listed here so executors **don't bake in PoC-only assumptions**. None are implem
 
 ## 12. Build & Run (Reference, not PoC scope)
 
-The exact `docker-compose.yml`, Makefiles, and CI configs are **out of scope** for the foundation docs. They are tracked as tasks `OPS-001..OPS-003` in [agent_tasks.md](./agent_tasks.md) and will be authored once Agents Alpha/Beta have committed enough code to need a CI lane.
+Local infrastructure is provided by **OPS-001** (`docker-compose.yml`, `Makefile`, [dev_setup.md](./dev_setup.md)). CI remains tracked as OPS-002 in [agent_tasks.md](./agent_tasks.md).
 
-Anticipated developer loop:
+Developer loop:
 
-```
-docker compose up -d postgres redis
-cd backend && goose up && go run ./cmd/server
+```bash
+make dev                                    # postgres + redis; goose up when migrations exist
+cd backend && go run ./cmd/server
 cd frontend && pnpm dev
 ```
 
