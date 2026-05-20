@@ -10,11 +10,24 @@ import (
 	"time"
 
 	"github.com/herogame/backend/internal/httpsrv"
+	"github.com/herogame/backend/internal/store"
 )
 
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 	slog.SetDefault(logger)
+
+	if dsn := os.Getenv("DATABASE_URL"); dsn != "" {
+		runMigrations := os.Getenv("RUN_MIGRATIONS") != "0"
+		if runMigrations {
+			logger.Info("running database migrations")
+			if err := store.MigrateUp(dsn); err != nil {
+				logger.Error("migrate failed", slog.String("error", err.Error()))
+				os.Exit(1)
+			}
+			logger.Info("migrations complete")
+		}
+	}
 
 	addr := os.Getenv("HTTP_ADDR")
 	if addr == "" {
