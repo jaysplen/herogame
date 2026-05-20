@@ -29,6 +29,16 @@ func (q *Queries) AddHeroUnits(ctx context.Context, arg AddHeroUnitsParams) erro
 	return err
 }
 
+const clearHeroUnits = `-- name: ClearHeroUnits :exec
+DELETE FROM hero_units
+WHERE hero_id = $1
+`
+
+func (q *Queries) ClearHeroUnits(ctx context.Context, heroID int64) error {
+	_, err := q.db.Exec(ctx, clearHeroUnits, heroID)
+	return err
+}
+
 const getHero = `-- name: GetHero :one
 SELECT id, player_id, name, current_node_id, base_speed, attack, defense, created_at
 FROM heroes
@@ -169,6 +179,24 @@ func (q *Queries) ListHeroes(ctx context.Context) ([]Hero, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const setHeroUnitQty = `-- name: SetHeroUnitQty :exec
+UPDATE hero_units
+SET qty = $3
+WHERE hero_id = $1
+  AND unit_id = $2
+`
+
+type SetHeroUnitQtyParams struct {
+	HeroID int64 `json:"hero_id"`
+	UnitID int64 `json:"unit_id"`
+	Qty    int32 `json:"qty"`
+}
+
+func (q *Queries) SetHeroUnitQty(ctx context.Context, arg SetHeroUnitQtyParams) error {
+	_, err := q.db.Exec(ctx, setHeroUnitQty, arg.HeroID, arg.UnitID, arg.Qty)
+	return err
 }
 
 const updateHeroNode = `-- name: UpdateHeroNode :exec

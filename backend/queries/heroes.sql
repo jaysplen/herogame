@@ -41,3 +41,13 @@ INSERT INTO hero_units (hero_id, unit_id, qty)
 VALUES ($1, $2, $3)
 ON CONFLICT (hero_id, unit_id)
 DO UPDATE SET qty = hero_units.qty + EXCLUDED.qty;
+
+-- name: SetHeroUnitQty :exec
+UPDATE hero_units
+SET qty = $3
+WHERE hero_id = $1
+  AND unit_id = $2;
+
+-- name: ClearHeroUnits :exec
+DELETE FROM hero_units
+WHERE hero_id = $1;

@@ -64,7 +64,10 @@ After `hello`, clients may send:
 - `move.request` — `{ heroId, targetNodeId }` (must be adjacent node)
 - `unit.buy` — `{ castleId, unitTypeId, qty }` (Player1 Pikeman: unitTypeId `1`)
 
+## Combat (BETA-004)
+
+Arriving at an alive creep (e.g. Bandit Camp, node 5) auto-resolves combat in the same DB transaction. Clients receive `combat.resolved` with the full round log. Defeat teleports the hero home and sets a 60s respawn lockout in Redis.
+
 ## Next tasks
 
-- **BETA-004** — combat resolution on creep arrival
 - **GAMMA-001** — frontend WS client

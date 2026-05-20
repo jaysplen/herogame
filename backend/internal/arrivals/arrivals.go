@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/herogame/backend/internal/combat"
+	"github.com/herogame/backend/internal/economy"
 	"github.com/herogame/backend/internal/proto"
 	"github.com/herogame/backend/internal/redisx"
 	"github.com/herogame/backend/internal/store"
@@ -16,6 +18,11 @@ const batchLimit = 100
 // Broadcaster pushes server events to connected clients.
 type Broadcaster interface {
 	Broadcast(env proto.Envelope)
+}
+
+// CombatFollowUp handles post-combat WS broadcasts (optional on Broadcaster impl).
+type CombatFollowUp interface {
+	PostCombat(ctx context.Context, r combat.ApplyResult, seq int64) error
 }
 
 // Scheduler manages Redis ZSET arrival timing and resolution.
@@ -75,6 +82,7 @@ func (a *Scheduler) Sweep(ctx context.Context, now time.Time) error {
 
 func (a *Scheduler) resolveOne(ctx context.Context, orderID int64) error {
 	var resolved gen.MovementOrder
+	var combatResult *combat.ApplyResult
 
 	err := a.store.WithTx(ctx, func(q *gen.Queries) error {
 		n, err := q.MarkMovementArrived(ctx, orderID)
@@ -92,6 +100,10 @@ func (a *Scheduler) resolveOne(ctx context.Context, orderID int64) error {
 			ID:            order.HeroID,
 			CurrentNodeID: order.ToNodeID,
 		}); err != nil {
+			return err
+		}
+		combatResult, err = combat.ApplyAtNode(ctx, q, order.HeroID, order.ToNodeID)
+		if err != nil {
 			return err
 		}
 		resolved = order
@@ -116,6 +128,20 @@ func (a *Scheduler) resolveOne(ctx context.Context, orderID int64) error {
 		}, 0)
 		if err == nil {
 			a.bus.Broadcast(env)
+		}
+	}
+
+	if combatResult != nil {
+		if combatResult.Respawn {
+			until := time.Now().UTC().Add(economy.RespawnLockoutSeconds * time.Second)
+			if err := a.redis.SetRespawnUntil(ctx, resolved.HeroID, until); err != nil {
+				a.log.Error("respawn lockout", slog.Int64("hero_id", resolved.HeroID), slog.String("error", err.Error()))
+			}
+		}
+		if follow, ok := a.bus.(CombatFollowUp); ok {
+			if err := follow.PostCombat(ctx, *combatResult, 0); err != nil {
+				a.log.Error("post combat broadcast", slog.String("error", err.Error()))
+			}
 		}
 	}
 

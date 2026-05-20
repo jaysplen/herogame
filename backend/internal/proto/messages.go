@@ -52,6 +52,25 @@ type UnitBuyPayload struct {
 	Qty        int   `json:"qty"`
 }
 
+// CombatLogEntry is one round in a combat log (game_rules.md §6.3).
+type CombatLogEntry struct {
+	Round           int    `json:"round"`
+	Side            string `json:"side"`
+	Damage          int    `json:"damage"`
+	DefenderHPAfter *int   `json:"defenderHpAfter,omitempty"`
+	AttackerHPAfter *int   `json:"attackerHpAfter,omitempty"`
+}
+
+// CombatResolvedPayload is emitted after auto-combat (architecture.md §7.2).
+type CombatResolvedPayload struct {
+	HeroID     int64            `json:"heroId"`
+	CreepID    int64            `json:"creepId"`
+	Outcome    string           `json:"outcome"`
+	GoldReward int32            `json:"goldReward"`
+	Casualties int              `json:"casualties"`
+	Log        []CombatLogEntry `json:"log"`
+}
+
 // CastleTickPayload is a throttled economy update.
 type CastleTickPayload struct {
 	CastleID   int64   `json:"castleId"`

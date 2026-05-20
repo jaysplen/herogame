@@ -41,19 +41,6 @@ This is the shared work board for the project. Read [architecture.md](./architec
 
 ## Backlog
 
-### [BETA-004] Deterministic combat resolution — **READY TO DELEGATE**
-- Owner: Agent Beta
-- Depends on: ALPHA-004, BETA-002
-- Acceptance:
-  - `internal/combat/resolve.go` implements the round loop from [game_rules.md §6.3](./game_rules.md#63-round-loop-pseudo-code) verbatim (attacker hits first, floor damage 1, full log).
-  - Casualty model per [game_rules.md §6.4](./game_rules.md#64-poc-casualty-model): integer Pikeman loss, hero defeat respawn lockout written to Redis.
-  - Rewards per [game_rules.md §6.7](./game_rules.md#67-rewards) applied transactionally with combat log insert.
-  - Tests cover: win, loss, exact tie-break (attacker wins on simultaneous reach-zero per the loop ordering), and the §6.6 worked example.
-- Files to touch:
-  - `backend/internal/combat/resolve.go`
-  - `backend/internal/combat/resolve_test.go`
-- Doc refs: [game_rules.md §6](./game_rules.md#6-combat)
-
 ### [GAMMA-001] Frontend scaffold + WS client
 - Owner: Agent Gamma
 - Depends on: BETA-001
@@ -135,6 +122,12 @@ _(empty — agents move tasks here when acceptance criteria pass)_
 ---
 
 ## Done
+
+### [BETA-004] Deterministic combat resolution
+- Owner: Agent Beta
+- Depends on: ALPHA-004, BETA-002, BETA-003
+- Acceptance: resolve.go round loop, apply.go on creep arrival, combat.resolved broadcast, tests (win/loss/tie/§6.6).
+- Files: `backend/internal/combat/`, `arrivals.go`, `ws/eventbus.go`
 
 ### [BETA-003] Move + Buy command handlers + broadcast
 - Owner: Agent Beta

@@ -65,7 +65,8 @@ func main() {
 		defer rdb.Close()
 
 		hub := ws.NewHub(logger)
-		tickEngine = tick.NewEngine(st, rdb, hub, logger)
+		bus := ws.NewEventBus(hub, st)
+		tickEngine = tick.NewEngine(st, rdb, bus, logger)
 		if err := tickEngine.Start(ctx); err != nil {
 			logger.Error("tick engine failed", slog.String("error", err.Error()))
 			os.Exit(1)
