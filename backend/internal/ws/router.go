@@ -1,0 +1,78 @@
+package ws
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+
+	"github.com/herogame/backend/internal/proto"
+	"github.com/herogame/backend/internal/store"
+	"github.com/jackc/pgx/v5"
+)
+
+// Router dispatches inbound envelopes after handshake.
+type Router struct {
+	store *store.Store
+}
+
+// NewRouter creates a message router.
+func NewRouter(st *store.Store) *Router {
+	return &Router{store: st}
+}
+
+// Handle processes a post-handshake client message.
+func (r *Router) Handle(ctx context.Context, c *Client, env proto.Envelope) error {
+	switch env.Type {
+	case proto.TypeMoveRequest, proto.TypeUnitBuy:
+		// Implemented in BETA-003.
+		return r.sendError(c, proto.CodeUnknownMessage,
+			fmt.Sprintf("handler for %q not implemented yet", env.Type), &env.Seq)
+	default:
+		return r.sendError(c, proto.CodeUnknownMessage,
+			fmt.Sprintf("unknown message type %q", env.Type), &env.Seq)
+	}
+}
+
+// HandleHello validates hello and returns the ack envelope bytes.
+func (r *Router) HandleHello(ctx context.Context, env proto.Envelope) ([]byte, int64, error) {
+	var payload proto.HelloPayload
+	if err := env.DecodePayload(&payload); err != nil {
+		return nil, 0, err
+	}
+	if payload.PlayerID <= 0 {
+		return nil, 0, errors.New("invalid playerId")
+	}
+
+	ack, err := BuildHelloAck(ctx, r.store, payload.PlayerID)
+	if err != nil {
+		if errors.Is(err, errUnknownPlayer) || errors.Is(err, pgx.ErrNoRows) {
+			errEnv, _ := proto.NewEnvelope(proto.TypeError,
+				proto.NewErrorPayload(proto.CodeHelloUnknownPlayer, "unknown player", &env.Seq),
+				env.Seq)
+			b, _ := json.Marshal(errEnv)
+			return b, 0, errUnknownPlayer
+		}
+		return nil, 0, err
+	}
+
+	ackEnv, err := proto.NewEnvelope(proto.TypeHelloAck, ack, env.Seq)
+	if err != nil {
+		return nil, 0, err
+	}
+	data, err := json.Marshal(ackEnv)
+	return data, payload.PlayerID, err
+}
+
+func (r *Router) sendError(c *Client, code, message string, refSeq *int64) error {
+	env, err := proto.NewEnvelope(proto.TypeError, proto.NewErrorPayload(code, message, refSeq), 0)
+	if err != nil {
+		return err
+	}
+	data, err := json.Marshal(env)
+	if err != nil {
+		return err
+	}
+	c.enqueue(data)
+	return nil
+}

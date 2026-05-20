@@ -9,7 +9,7 @@ import (
 )
 
 // NewRouter returns the HTTP router for the game server.
-func NewRouter(logger *slog.Logger) http.Handler {
+func NewRouter(logger *slog.Logger, wsHandler http.Handler) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
@@ -17,6 +17,9 @@ func NewRouter(logger *slog.Logger) http.Handler {
 	r.Use(requestLogger(logger))
 
 	r.Get("/healthz", healthz)
+	if wsHandler != nil {
+		r.Get("/ws", wsHandler.ServeHTTP)
+	}
 
 	return r
 }

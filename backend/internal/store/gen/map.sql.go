@@ -33,6 +33,37 @@ func (q *Queries) GetEdge(ctx context.Context, arg GetEdgeParams) (MapEdge, erro
 	return i, err
 }
 
+const listEdges = `-- name: ListEdges :many
+SELECT id, from_node_id, to_node_id, distance_units
+FROM map_edges
+ORDER BY id
+`
+
+func (q *Queries) ListEdges(ctx context.Context) ([]MapEdge, error) {
+	rows, err := q.db.Query(ctx, listEdges)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []MapEdge{}
+	for rows.Next() {
+		var i MapEdge
+		if err := rows.Scan(
+			&i.ID,
+			&i.FromNodeID,
+			&i.ToNodeID,
+			&i.DistanceUnits,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listEdgesByNode = `-- name: ListEdgesByNode :many
 SELECT id, from_node_id, to_node_id, distance_units
 FROM map_edges

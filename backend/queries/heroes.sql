@@ -3,6 +3,12 @@ SELECT id, player_id, name, current_node_id, base_speed, attack, defense, create
 FROM heroes
 WHERE id = $1;
 
+-- name: GetHeroByPlayer :one
+SELECT id, player_id, name, current_node_id, base_speed, attack, defense, created_at
+FROM heroes
+WHERE player_id = $1
+LIMIT 1;
+
 -- name: UpdateHeroNode :exec
 UPDATE heroes
 SET current_node_id = $2

@@ -33,6 +33,29 @@ func (q *Queries) GetHero(ctx context.Context, id int64) (Hero, error) {
 	return i, err
 }
 
+const getHeroByPlayer = `-- name: GetHeroByPlayer :one
+SELECT id, player_id, name, current_node_id, base_speed, attack, defense, created_at
+FROM heroes
+WHERE player_id = $1
+LIMIT 1
+`
+
+func (q *Queries) GetHeroByPlayer(ctx context.Context, playerID int64) (Hero, error) {
+	row := q.db.QueryRow(ctx, getHeroByPlayer, playerID)
+	var i Hero
+	err := row.Scan(
+		&i.ID,
+		&i.PlayerID,
+		&i.Name,
+		&i.CurrentNodeID,
+		&i.BaseSpeed,
+		&i.Attack,
+		&i.Defense,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const listHeroUnitsByHero = `-- name: ListHeroUnitsByHero :many
 SELECT
     hu.hero_id,

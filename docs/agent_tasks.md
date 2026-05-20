@@ -41,24 +41,7 @@ This is the shared work board for the project. Read [architecture.md](./architec
 
 ## Backlog
 
-### [BETA-001] WebSocket gateway: envelope + connection lifecycle — **READY TO DELEGATE**
-- Owner: Agent Beta
-- Depends on: ALPHA-001
-- Acceptance:
-  - `GET /ws` upgrades via `gorilla/websocket`.
-  - Per-connection read+write goroutines with a buffered outbound channel.
-  - Envelope struct `proto.Envelope[T]` matches [architecture.md §7.1](./architecture.md#71-envelope) exactly (`type`, `payload` as `json.RawMessage`, `seq`, `serverTime`).
-  - On connect, server expects a `hello` envelope within 5s or closes with code `4000` and reason `HELLO_TIMEOUT`.
-  - On valid `hello`, server replies with `hello.ack` containing a bootstrap snapshot (map, hero, castle, gold). Snapshot shape matches [architecture.md §7.2](./architecture.md#72-poc-message-catalog).
-  - `error` envelope helper centralizes the error catalog (initial codes: `HELLO_TIMEOUT`, `HELLO_UNKNOWN_PLAYER`, `MOVE_INVALID_EDGE`, `MOVE_HERO_IN_FLIGHT`, `MOVE_HERO_RESPAWNING`, `BUY_INSUFFICIENT_GOLD`).
-- Files to touch:
-  - `backend/internal/proto/envelope.go`
-  - `backend/internal/proto/errors.go`
-  - `backend/internal/ws/gateway.go`
-  - `backend/internal/ws/router.go`
-- Doc refs: [architecture.md §7](./architecture.md#7-websocket-protocol-contract)
-
-### [BETA-002] Redis client + arrivals ZSET + tick engine
+### [BETA-002] Redis client + arrivals ZSET + tick engine — **READY TO DELEGATE**
 - Owner: Agent Beta
 - Depends on: ALPHA-003, BETA-001
 - Acceptance:
@@ -186,6 +169,12 @@ _(empty — agents move tasks here when acceptance criteria pass)_
 ---
 
 ## Done
+
+### [BETA-001] WebSocket gateway: envelope + connection lifecycle
+- Owner: Agent Beta
+- Depends on: ALPHA-001, ALPHA-003
+- Acceptance: `GET /ws`, hello handshake, `hello.ack` bootstrap, error catalog, integration tests.
+- Files: `backend/internal/proto/`, `backend/internal/ws/`
 
 ### [ALPHA-004] Domain packages: world, hero, economy
 - Owner: Agent Alpha

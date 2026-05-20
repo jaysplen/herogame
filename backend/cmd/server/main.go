@@ -11,6 +11,7 @@ import (
 
 	"github.com/herogame/backend/internal/httpsrv"
 	"github.com/herogame/backend/internal/store"
+	"github.com/herogame/backend/internal/ws"
 )
 
 func main() {
@@ -34,9 +35,25 @@ func main() {
 		addr = ":8080"
 	}
 
+	var wsHandler http.Handler
+	if dsn := os.Getenv("DATABASE_URL"); dsn != "" {
+		ctx := context.Background()
+		st, err := store.New(ctx, dsn)
+		if err != nil {
+			logger.Error("store init failed", slog.String("error", err.Error()))
+			os.Exit(1)
+		}
+		defer st.Close()
+		gw := ws.NewGateway(st, logger)
+		wsHandler = ws.Handler(gw)
+		logger.Info("websocket gateway enabled", slog.String("path", "/ws"))
+	} else {
+		logger.Warn("DATABASE_URL unset; /ws disabled")
+	}
+
 	srv := &http.Server{
 		Addr:         addr,
-		Handler:      httpsrv.NewRouter(logger),
+		Handler:      httpsrv.NewRouter(logger, wsHandler),
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,

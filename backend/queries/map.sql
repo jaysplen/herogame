@@ -9,6 +9,11 @@ SELECT id, name, x, y, kind
 FROM map_nodes
 ORDER BY id;
 
+-- name: ListEdges :many
+SELECT id, from_node_id, to_node_id, distance_units
+FROM map_edges
+ORDER BY id;
+
 -- name: ListEdgesByNode :many
 SELECT id, from_node_id, to_node_id, distance_units
 FROM map_edges

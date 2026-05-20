@@ -45,7 +45,15 @@ sqlc generate   # from backend/, after editing queries/*.sql
 go test ./...   # includes store integration tests (needs Postgres)
 ```
 
+## WebSocket (BETA-001)
+
+Requires `DATABASE_URL`. Connect to `ws://localhost:8080/ws`, send `hello` within 5s:
+
+```json
+{"type":"hello","payload":{"playerId":1},"seq":1,"serverTime":0}
+```
+
 ## Next tasks
 
-- **BETA-001** — WebSocket gateway + envelope protocol
 - **BETA-002** — Redis arrivals ZSET + tick engine
+- **BETA-003** — move/buy handlers
