@@ -41,13 +41,7 @@ This is the shared work board for the project. Read [architecture.md](./architec
 
 ## Backlog
 
-### [BACKLOG-003] Server respawnUntil in hero.state — **READY TO DELEGATE**
-- Owner: TBD
-- Depends on: BETA-004, GAMMA-003
-- Acceptance: Defeat sets `respawnUntil` ms in `hero.state`; client drops local-only timer.
-- Doc refs: [poc_review.md §7](./poc_review.md#7-follow-up-backlog-filed-in-agent_tasksmd)
-
-### [BACKLOG-004] hero_units[] in bootstrap / hero.state
+### [BACKLOG-004] hero_units[] in bootstrap / hero.state — **READY TO DELEGATE**
 - Owner: TBD
 - Depends on: GAMMA-003
 - Acceptance: Army HUD lists per-unit stacks from server, not Pikeman-only inference.
@@ -80,6 +74,12 @@ _(empty — agents move tasks here when acceptance criteria pass)_
 ---
 
 ## Done
+
+### [BACKLOG-003] Server respawnUntil in hero.state
+- Owner: Agent
+- Depends on: BETA-004, GAMMA-003
+- Acceptance: `hero.state.respawnUntil` ms from Redis; client HUD uses server field only.
+- Files: `redisx/client.go`, `ws/state.go`, `proto/messages.go`, frontend `HeroPanel.tsx`
 
 ### [BACKLOG-002] Replay in-flight movement in hello.ack
 - Owner: Agent

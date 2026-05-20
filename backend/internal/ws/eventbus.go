@@ -5,6 +5,7 @@ import (
 
 	"github.com/herogame/backend/internal/combat"
 	"github.com/herogame/backend/internal/proto"
+	"github.com/herogame/backend/internal/redisx"
 	"github.com/herogame/backend/internal/store"
 )
 
@@ -16,11 +17,11 @@ type EventBus struct {
 }
 
 // NewEventBus wires the hub and store for tick + gateway use.
-func NewEventBus(hub *Hub, st *store.Store) *EventBus {
+func NewEventBus(hub *Hub, st *store.Store, rdb *redisx.Client) *EventBus {
 	return &EventBus{
 		hub:   hub,
 		store: st,
-		bc:    NewBroadcaster(hub, st),
+		bc:    NewBroadcaster(hub, st, rdb),
 	}
 }
 

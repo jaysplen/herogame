@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/herogame/backend/internal/proto"
+	"github.com/herogame/backend/internal/redisx"
 	"github.com/herogame/backend/internal/store"
 )
 
@@ -15,13 +16,14 @@ const castleTickMinInterval = 5 * time.Second
 type Broadcaster struct {
 	hub   *Hub
 	store *store.Store
+	redis *redisx.Client
 	mu    sync.Mutex
 	last  map[int64]time.Time // castleID -> last castle.tick
 }
 
 // NewBroadcaster creates a broadcaster.
-func NewBroadcaster(hub *Hub, st *store.Store) *Broadcaster {
-	return &Broadcaster{hub: hub, store: st, last: make(map[int64]time.Time)}
+func NewBroadcaster(hub *Hub, st *store.Store, rdb *redisx.Client) *Broadcaster {
+	return &Broadcaster{hub: hub, store: st, redis: rdb, last: make(map[int64]time.Time)}
 }
 
 // Broadcast sends to all connected clients.
@@ -41,7 +43,7 @@ func (b *Broadcaster) BroadcastMoveUpdate(payload proto.MoveUpdatePayload, seq i
 
 // BroadcastHeroState emits hero.state for a hero.
 func (b *Broadcaster) BroadcastHeroState(ctx context.Context, heroID int64, seq int64) error {
-	state, err := BuildHeroState(ctx, b.store, heroID)
+	state, err := BuildHeroState(ctx, b.store, b.redis, heroID)
 	if err != nil {
 		return err
 	}

@@ -76,6 +76,8 @@ export interface HeroStatePayload {
   armySize: number;
   upkeepGoldPerHour: number;
   speedEffective: number;
+  /** Server epoch ms; hero cannot move while serverNow < respawnUntil. */
+  respawnUntil?: number;
 }
 
 export interface HelloAckPayload {

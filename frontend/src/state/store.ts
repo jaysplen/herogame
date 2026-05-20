@@ -3,7 +3,7 @@ import { create } from "zustand";
 import type { Envelope } from "../proto/envelope";
 import { decodePayload } from "../proto/envelope";
 import type { ErrorPayload } from "../proto/errors";
-import { CASTLE_GOLD_PER_MIN_DEFAULT, RESPAWN_LOCKOUT_MS } from "../hud/constants";
+import { CASTLE_GOLD_PER_MIN_DEFAULT } from "../hud/constants";
 import {
   MsgCastleTick,
   MsgCombatResolved,
@@ -55,7 +55,6 @@ interface GameState {
   connection: ConnectionSlice;
   clockSkewMs: number;
   goldAnchor: GoldAnchor | null;
-  respawnUntilMs: number | null;
   player: PlayerSlice;
   hero: HeroStatePayload | null;
   castle: CastleSlice;
@@ -96,7 +95,6 @@ export const useGameStore = create<GameState>((set, get) => ({
   connection: { status: "disconnected", error: null },
   clockSkewMs: 0,
   goldAnchor: null,
-  respawnUntilMs: null,
   player: { ...initialPlayer },
   hero: null,
   castle: { ...initialCastle },
@@ -135,7 +133,6 @@ export const useGameStore = create<GameState>((set, get) => ({
           goldAnchor: anchorFromGold(ack.gold, gpm, env.serverTime),
           map: ack.mapSnapshot,
           inFlight: ack.inFlight ?? null,
-          respawnUntilMs: null,
           connection: { status: "connected", error: null },
         });
         break;
@@ -177,14 +174,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
       case MsgCombatResolved: {
         const combat = decodePayload<CombatResolvedPayload>(env);
-        const patch: Partial<GameState> = {
+        set({
           lastCombat: combat,
           combatModalOpen: true,
-        };
-        if (combat.outcome === "loss") {
-          patch.respawnUntilMs = env.serverTime + RESPAWN_LOCKOUT_MS;
-        }
-        set(patch);
+        });
         break;
       }
       case MsgError: {
@@ -202,7 +195,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       connection: { status: "disconnected", error: null },
       clockSkewMs: 0,
       goldAnchor: null,
-      respawnUntilMs: null,
       player: { ...initialPlayer },
       hero: null,
       castle: { ...initialCastle },

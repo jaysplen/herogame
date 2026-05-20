@@ -105,19 +105,40 @@ func respawnKey(heroID int64) string {
 	return "hero:" + strconv.FormatInt(heroID, 10) + ":respawn_until"
 }
 
-// SetRespawnUntil stores a lockout epoch (seconds) for a defeated hero.
+// SetRespawnUntil stores lockout end as Unix milliseconds (matches WS serverTime).
 func (c *Client) SetRespawnUntil(ctx context.Context, heroID int64, until time.Time) error {
-	return c.rdb.Set(ctx, respawnKey(heroID), until.Unix(), until.Sub(time.Now())).Err()
+	ttl := until.Sub(time.Now())
+	if ttl < time.Second {
+		ttl = time.Second
+	}
+	return c.rdb.Set(ctx, respawnKey(heroID), until.UnixMilli(), ttl).Err()
+}
+
+func respawnUntilMs(val int64) int64 {
+	// Legacy keys stored Unix seconds (values below ~1e12).
+	if val > 0 && val < 1_000_000_000_000 {
+		return val * 1000
+	}
+	return val
+}
+
+// RespawnUntilMs returns lockout end in ms, or ok=false if not locked out.
+func (c *Client) RespawnUntilMs(ctx context.Context, heroID int64) (untilMs int64, ok bool, err error) {
+	val, err := c.rdb.Get(ctx, respawnKey(heroID)).Int64()
+	if err == redis.Nil {
+		return 0, false, nil
+	}
+	if err != nil {
+		return 0, false, err
+	}
+	return respawnUntilMs(val), true, nil
 }
 
 // IsRespawning reports whether the hero is still in respawn lockout.
 func (c *Client) IsRespawning(ctx context.Context, heroID int64, now time.Time) (bool, error) {
-	val, err := c.rdb.Get(ctx, respawnKey(heroID)).Int64()
-	if err == redis.Nil {
-		return false, nil
-	}
-	if err != nil {
+	untilMs, ok, err := c.RespawnUntilMs(ctx, heroID)
+	if err != nil || !ok {
 		return false, err
 	}
-	return now.Unix() < val, nil
+	return now.UnixMilli() < untilMs, nil
 }

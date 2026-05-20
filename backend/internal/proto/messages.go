@@ -108,6 +108,8 @@ type HeroStatePayload struct {
 	ArmySize          int     `json:"armySize"`
 	UpkeepGoldPerHour float64 `json:"upkeepGoldPerHour"`
 	SpeedEffective    float64 `json:"speedEffective"`
+	// RespawnUntil is server epoch ms; set while hero cannot move after defeat.
+	RespawnUntil *int64 `json:"respawnUntil,omitempty"`
 }
 
 // HelloAckPayload is the bootstrap snapshot after handshake.

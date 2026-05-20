@@ -4,16 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/herogame/backend/internal/economy"
 	"github.com/herogame/backend/internal/proto"
+	"github.com/herogame/backend/internal/redisx"
 	"github.com/herogame/backend/internal/store"
 	"github.com/herogame/backend/internal/store/gen"
-	"github.com/herogame/backend/internal/world"
 	"github.com/jackc/pgx/v5"
 )
 
 // BuildHelloAck loads the PoC bootstrap snapshot for a player.
-func BuildHelloAck(ctx context.Context, st *store.Store, playerID int64) (proto.HelloAckPayload, error) {
+func BuildHelloAck(ctx context.Context, st *store.Store, rdb *redisx.Client, playerID int64) (proto.HelloAckPayload, error) {
 	player, err := st.Q.GetPlayer(ctx, playerID)
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -41,26 +40,14 @@ func BuildHelloAck(ctx context.Context, st *store.Store, playerID int64) (proto.
 		return proto.HelloAckPayload{}, err
 	}
 
-	units, err := st.Q.ListHeroUnitsByHero(ctx, h.ID)
+	gold, _ := player.Gold.Float64Value()
+
+	inFlight, err := activeMovePayload(ctx, st, h.ID)
 	if err != nil {
 		return proto.HelloAckPayload{}, err
 	}
 
-	armySize := 0
-	var stack []economy.StackLine
-	for _, u := range units {
-		armySize += int(u.Qty)
-		upkeep, _ := u.UpkeepGoldPerHour.Float64Value()
-		stack = append(stack, economy.StackLine{
-			Qty:               int(u.Qty),
-			UpkeepGoldPerHour: upkeep.Float64,
-		})
-	}
-
-	gold, _ := player.Gold.Float64Value()
-	upkeepGph := economy.UpkeepGoldPerHour(stack)
-
-	inFlight, err := activeMovePayload(ctx, st, h.ID, armySize, int(h.BaseSpeed))
+	heroState, err := BuildHeroState(ctx, st, rdb, h.ID)
 	if err != nil {
 		return proto.HelloAckPayload{}, err
 	}
@@ -74,18 +61,12 @@ func BuildHelloAck(ctx context.Context, st *store.Store, playerID int64) (proto.
 			Nodes: mapNodesToDTO(nodes),
 			Edges: mapEdgesToDTO(edges),
 		},
-		HeroState: proto.HeroStatePayload{
-			HeroID:            h.ID,
-			CurrentNodeID:     h.CurrentNodeID,
-			ArmySize:          armySize,
-			UpkeepGoldPerHour: upkeepGph,
-			SpeedEffective:    world.EffectiveSpeed(int(h.BaseSpeed), armySize),
-		},
-		InFlight: inFlight,
+		HeroState: heroState,
+		InFlight:  inFlight,
 	}, nil
 }
 
-func activeMovePayload(ctx context.Context, st *store.Store, heroID int64, armySize, baseSpeed int) (*proto.MoveUpdatePayload, error) {
+func activeMovePayload(ctx context.Context, st *store.Store, heroID int64) (*proto.MoveUpdatePayload, error) {
 	order, err := st.Q.GetActiveMovementByHero(ctx, heroID)
 	if err != nil {
 		if err == pgx.ErrNoRows {

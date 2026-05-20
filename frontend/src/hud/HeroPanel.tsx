@@ -1,21 +1,15 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useGameStore, useServerNow } from "../state/store";
 
 export function HeroPanel() {
   const hero = useGameStore((s) => s.hero);
-  const respawnUntilMs = useGameStore((s) => s.respawnUntilMs);
   const serverNow = useServerNow(500);
 
-  useEffect(() => {
-    if (respawnUntilMs != null && serverNow >= respawnUntilMs) {
-      useGameStore.setState({ respawnUntilMs: null });
-    }
-  }, [respawnUntilMs, serverNow]);
-
   const respawnSecondsLeft = useMemo(() => {
-    if (respawnUntilMs == null || serverNow >= respawnUntilMs) return 0;
-    return Math.ceil((respawnUntilMs - serverNow) / 1000);
-  }, [respawnUntilMs, serverNow]);
+    const until = hero?.respawnUntil;
+    if (until == null || serverNow >= until) return 0;
+    return Math.ceil((until - serverNow) / 1000);
+  }, [hero?.respawnUntil, serverNow]);
 
   if (!hero) {
     return (

@@ -51,7 +51,7 @@ func testE2E(t *testing.T) (*store.Store, *redisx.Client, *tick.Engine, *ws.Gate
 	}
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError}))
 	hub := ws.NewHub(logger)
-	bus := ws.NewEventBus(hub, st)
+	bus := ws.NewEventBus(hub, st, rdb)
 	eng := tick.NewEngine(st, rdb, bus, logger)
 	_ = eng.Arrivals().Rehydrate(ctx)
 	gw := ws.NewGateway(st, rdb, eng.Arrivals(), hub, logger)
@@ -163,9 +163,14 @@ func TestPoCPlaythroughSmoke(t *testing.T) {
 	waitForArrival(t, eng, 10*time.Second)
 	readUntil(t, conn, proto.TypeMoveArrived, 3*time.Second)
 	combatEnv := readUntil(t, conn, proto.TypeCombatResolved, 5*time.Second)
+	heroEnv := readUntil(t, conn, proto.TypeHeroState, 3*time.Second)
 
 	var combat proto.CombatResolvedPayload
 	if err := json.Unmarshal(combatEnv.Payload, &combat); err != nil {
+		t.Fatal(err)
+	}
+	var heroState proto.HeroStatePayload
+	if err := json.Unmarshal(heroEnv.Payload, &heroState); err != nil {
 		t.Fatal(err)
 	}
 	if combat.Outcome != "win" && combat.Outcome != "loss" {
@@ -218,6 +223,9 @@ func TestPoCPlaythroughSmoke(t *testing.T) {
 		respawning, err := rdb.IsRespawning(ctx, 1, time.Now().UTC())
 		if err != nil || !respawning {
 			t.Fatal("expected respawn lockout in redis after loss")
+		}
+		if heroState.RespawnUntil == nil || *heroState.RespawnUntil <= time.Now().UnixMilli() {
+			t.Fatalf("hero.state missing respawnUntil after loss: %+v", heroState)
 		}
 	}
 

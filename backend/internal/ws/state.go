@@ -5,13 +5,14 @@ import (
 
 	"github.com/herogame/backend/internal/economy"
 	"github.com/herogame/backend/internal/proto"
+	"github.com/herogame/backend/internal/redisx"
 	"github.com/herogame/backend/internal/store"
 	"github.com/herogame/backend/internal/store/gen"
 	"github.com/herogame/backend/internal/world"
 )
 
-// BuildHeroState loads hero state for broadcasts.
-func BuildHeroState(ctx context.Context, st *store.Store, heroID int64) (proto.HeroStatePayload, error) {
+// BuildHeroState loads hero state for broadcasts (includes Redis respawn lockout).
+func BuildHeroState(ctx context.Context, st *store.Store, rdb *redisx.Client, heroID int64) (proto.HeroStatePayload, error) {
 	h, err := st.Q.GetHero(ctx, heroID)
 	if err != nil {
 		return proto.HeroStatePayload{}, err
@@ -30,13 +31,24 @@ func BuildHeroState(ctx context.Context, st *store.Store, heroID int64) (proto.H
 			UpkeepGoldPerHour: up.Float64,
 		})
 	}
-	return proto.HeroStatePayload{
+
+	state := proto.HeroStatePayload{
 		HeroID:            h.ID,
 		CurrentNodeID:     h.CurrentNodeID,
 		ArmySize:          armySize,
 		UpkeepGoldPerHour: economy.UpkeepGoldPerHour(stack),
 		SpeedEffective:    world.EffectiveSpeed(int(h.BaseSpeed), armySize),
-	}, nil
+	}
+
+	if rdb != nil {
+		if untilMs, ok, err := rdb.RespawnUntilMs(ctx, heroID); err != nil {
+			return proto.HeroStatePayload{}, err
+		} else if ok {
+			state.RespawnUntil = &untilMs
+		}
+	}
+
+	return state, nil
 }
 
 // PlayerGold returns the player's gold as float64.

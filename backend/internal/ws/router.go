@@ -28,7 +28,7 @@ func NewRouter(st *store.Store, rdb *redisx.Client, sched *arrivals.Scheduler, h
 		store:       st,
 		redis:       rdb,
 		arrivals:    sched,
-		broadcaster: NewBroadcaster(hub, st),
+		broadcaster: NewBroadcaster(hub, st, rdb),
 	}
 	r.move = &MoveHandler{router: r}
 	r.buy = &BuyHandler{router: r}
@@ -58,7 +58,7 @@ func (r *Router) HandleHello(ctx context.Context, env proto.Envelope) ([]byte, i
 		return nil, 0, errors.New("invalid playerId")
 	}
 
-	ack, err := BuildHelloAck(ctx, r.store, payload.PlayerID)
+	ack, err := BuildHelloAck(ctx, r.store, r.redis, payload.PlayerID)
 	if err != nil {
 		if errors.Is(err, errUnknownPlayer) || errors.Is(err, pgx.ErrNoRows) {
 			errEnv, _ := proto.NewEnvelope(proto.TypeError,

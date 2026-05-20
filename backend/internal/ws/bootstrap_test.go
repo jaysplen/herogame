@@ -31,7 +31,7 @@ func TestHelloAckIncludesInFlightMovement(t *testing.T) {
 		_, _ = st.Pool().Exec(ctx, `DELETE FROM movement_orders WHERE id = $1`, order.ID)
 	})
 
-	ack, err := ws.BuildHelloAck(ctx, st, 1)
+	ack, err := ws.BuildHelloAck(ctx, st, nil, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func TestHelloAckNoInFlightWhenIdle(t *testing.T) {
 
 	_, _ = st.Pool().Exec(ctx, `DELETE FROM movement_orders WHERE hero_id = 1 AND status = 'in_flight'`)
 
-	ack, err := ws.BuildHelloAck(ctx, st, 1)
+	ack, err := ws.BuildHelloAck(ctx, st, nil, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
