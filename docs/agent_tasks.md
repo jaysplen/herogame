@@ -41,13 +41,7 @@ This is the shared work board for the project. Read [architecture.md](./architec
 
 ## Backlog
 
-### [BACKLOG-004] hero_units[] in bootstrap / hero.state — **READY TO DELEGATE**
-- Owner: TBD
-- Depends on: GAMMA-003
-- Acceptance: Army HUD lists per-unit stacks from server, not Pikeman-only inference.
-- Doc refs: [poc_review.md §3](./poc_review.md#3-reconciliation-ui-vs-db)
-
-### [BACKLOG-005] Balance: teachable first win at Bandit Camp
+### [BACKLOG-005] Balance: teachable first win at Bandit Camp — **READY TO DELEGATE**
 - Owner: TBD
 - Depends on: LEAD-001
 - Acceptance: Documented target army size or tuned seed (gold/qty) so a new player can win in one session.
@@ -74,6 +68,12 @@ _(empty — agents move tasks here when acceptance criteria pass)_
 ---
 
 ## Done
+
+### [BACKLOG-004] hero_units[] in bootstrap / hero.state
+- Owner: Agent
+- Depends on: GAMMA-003
+- Acceptance: `hero.state.units` + `hello.ack.shopUnits`; Army HUD from server stacks/catalog.
+- Files: `proto/messages.go`, `ws/state.go`, `ws/units.go`, `ArmyPanel.tsx`
 
 ### [BACKLOG-003] Server respawnUntil in hero.state
 - Owner: Agent

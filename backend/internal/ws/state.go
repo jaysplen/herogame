@@ -36,6 +36,7 @@ func BuildHeroState(ctx context.Context, st *store.Store, rdb *redisx.Client, he
 		HeroID:            h.ID,
 		CurrentNodeID:     h.CurrentNodeID,
 		ArmySize:          armySize,
+		Units:             mapHeroUnitStacks(units),
 		UpkeepGoldPerHour: economy.UpkeepGoldPerHour(stack),
 		SpeedEffective:    world.EffectiveSpeed(int(h.BaseSpeed), armySize),
 	}

@@ -228,12 +228,12 @@ Server → Client:
 
 | `type` | `payload` shape | Purpose |
 |---|---|---|
-| `hello.ack` | `{ playerId, heroId, castleId, mapSnapshot, heroState, gold, inFlight? }` | Bootstrap snapshot; `inFlight` mirrors `move.update` when a movement is active. |
+| `hello.ack` | `{ playerId, heroId, castleId, mapSnapshot, heroState, shopUnits, gold, inFlight? }` | Bootstrap snapshot; `heroState.units` is army; `shopUnits` is recruit catalog. |
 | `move.update` | `{ heroId, fromNodeId, toNodeId, departAt, arriveAt, travelSeconds }` | Confirms a new movement order or re-broadcasts in-flight ones (e.g., on reconnect). |
 | `move.arrived` | `{ heroId, nodeId }` | Hero finished travel. |
 | `combat.resolved` | `{ heroId, creepId, outcome: "win" \| "loss", goldReward, casualties, log: CombatLogEntry[] }` | Auto-resolved fight result. |
 | `castle.tick` | `{ castleId, gold, goldPerMin }` | Periodic economy update (throttled, see §7.3). |
-| `hero.state` | `{ heroId, currentNodeId, armySize, upkeepGoldPerHour, speedEffective, respawnUntil? }` | Periodic or post-event hero snapshot; `respawnUntil` ms when defeated. |
+| `hero.state` | `{ heroId, currentNodeId, armySize, units[], upkeepGoldPerHour, speedEffective, respawnUntil? }` | Periodic or post-event hero snapshot; `units` from `hero_units`. |
 | `error` | `{ code: string, message: string, refSeq?: number }` | Validation/auth failure. |
 
 ### 7.3 Broadcast Frequency

@@ -29,6 +29,7 @@ Example:
 
 ## 2026-05-20
 
+- BACKLOG-004 — `hero.state.units` and `hello.ack.shopUnits`; army HUD driven by server unit stacks.
 - BACKLOG-003 — `hero.state.respawnUntil` (server ms) from Redis; client drops local respawn timer.
 - BACKLOG-002 — `hello.ack` includes optional `inFlight` for reconnect interpolation; frontend store applies on bootstrap.
 - BACKLOG-001 — GitHub Actions CI: backend `go vet`/`go test` with Postgres + Redis services; frontend `npm run build`.

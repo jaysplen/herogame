@@ -121,10 +121,14 @@ export const useGameStore = create<GameState>((set, get) => ({
       case MsgHelloAck: {
         const ack = decodePayload<HelloAckPayload>(env);
         const gpm = CASTLE_GOLD_PER_MIN_DEFAULT;
+        const heroState = {
+          ...ack.heroState,
+          units: ack.heroState.units ?? [],
+        };
         set({
-          bootstrap: ack,
+          bootstrap: { ...ack, shopUnits: ack.shopUnits ?? [] },
           player: { playerId: ack.playerId, gold: ack.gold },
-          hero: ack.heroState,
+          hero: heroState,
           castle: {
             castleId: ack.castleId,
             gold: ack.gold,
@@ -138,8 +142,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         break;
       }
       case MsgHeroState: {
-        const hero = decodePayload<HeroStatePayload>(env);
-        set({ hero });
+        const raw = decodePayload<HeroStatePayload>(env);
+        set({ hero: { ...raw, units: raw.units ?? [] } });
         break;
       }
       case MsgCastleTick: {

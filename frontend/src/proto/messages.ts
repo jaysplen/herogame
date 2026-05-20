@@ -70,10 +70,19 @@ export interface MapSnapshot {
   edges: MapEdgeDTO[];
 }
 
+export interface HeroUnitStackDTO {
+  unitId: number;
+  code: string;
+  name: string;
+  qty: number;
+  costGold: number;
+}
+
 export interface HeroStatePayload {
   heroId: number;
   currentNodeId: number;
   armySize: number;
+  units: HeroUnitStackDTO[];
   upkeepGoldPerHour: number;
   speedEffective: number;
   /** Server epoch ms; hero cannot move while serverNow < respawnUntil. */
@@ -87,6 +96,8 @@ export interface HelloAckPayload {
   gold: number;
   mapSnapshot: MapSnapshot;
   heroState: HeroStatePayload;
+  /** Castle recruit catalog (qty 0 per row). */
+  shopUnits: HeroUnitStackDTO[];
   /** Present when hero has an in-flight movement_order (reconnect). */
   inFlight?: MoveUpdatePayload;
 }

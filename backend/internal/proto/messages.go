@@ -101,13 +101,23 @@ type MapSnapshot struct {
 	Edges []MapEdgeDTO `json:"edges"`
 }
 
+// HeroUnitStackDTO is one row of the hero army or castle shop catalog.
+type HeroUnitStackDTO struct {
+	UnitID   int64  `json:"unitId"`
+	Code     string `json:"code"`
+	Name     string `json:"name"`
+	Qty      int    `json:"qty"`
+	CostGold int32  `json:"costGold"`
+}
+
 // HeroStatePayload is the hero slice of hello.ack / hero.state.
 type HeroStatePayload struct {
-	HeroID            int64   `json:"heroId"`
-	CurrentNodeID     int64   `json:"currentNodeId"`
-	ArmySize          int     `json:"armySize"`
-	UpkeepGoldPerHour float64 `json:"upkeepGoldPerHour"`
-	SpeedEffective    float64 `json:"speedEffective"`
+	HeroID            int64              `json:"heroId"`
+	CurrentNodeID     int64              `json:"currentNodeId"`
+	ArmySize          int                `json:"armySize"`
+	Units             []HeroUnitStackDTO `json:"units"`
+	UpkeepGoldPerHour float64            `json:"upkeepGoldPerHour"`
+	SpeedEffective    float64            `json:"speedEffective"`
 	// RespawnUntil is server epoch ms; set while hero cannot move after defeat.
 	RespawnUntil *int64 `json:"respawnUntil,omitempty"`
 }
@@ -120,6 +130,8 @@ type HelloAckPayload struct {
 	Gold        float64          `json:"gold"`
 	MapSnapshot MapSnapshot      `json:"mapSnapshot"`
 	HeroState   HeroStatePayload `json:"heroState"`
+	// ShopUnits is the castle recruit catalog (qty 0); same shape as army stacks.
+	ShopUnits []HeroUnitStackDTO `json:"shopUnits"`
 	// InFlight is set when the hero has an active movement_order (reconnect replay).
 	InFlight *MoveUpdatePayload `json:"inFlight,omitempty"`
 }

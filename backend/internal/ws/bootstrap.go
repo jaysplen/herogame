@@ -52,6 +52,11 @@ func BuildHelloAck(ctx context.Context, st *store.Store, rdb *redisx.Client, pla
 		return proto.HelloAckPayload{}, err
 	}
 
+	catalog, err := st.Q.ListUnits(ctx)
+	if err != nil {
+		return proto.HelloAckPayload{}, err
+	}
+
 	return proto.HelloAckPayload{
 		PlayerID: playerID,
 		HeroID:   h.ID,
@@ -62,6 +67,7 @@ func BuildHelloAck(ctx context.Context, st *store.Store, rdb *redisx.Client, pla
 			Edges: mapEdgesToDTO(edges),
 		},
 		HeroState: heroState,
+		ShopUnits: mapShopUnits(catalog),
 		InFlight:  inFlight,
 	}, nil
 }

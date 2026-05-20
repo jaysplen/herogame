@@ -13,6 +13,7 @@
 | Gold income / upkeep | `tick/economy.go`, `tick/upkeep.go` |
 | Respawn lockout | Redis + `hero.state.respawnUntil` |
 | Hero position after events | `heroes.current_node_id` → `move.arrived` + `hero.state` |
+| Army composition | `hero_units` → `hero.state.units` + `hello.ack.shopUnits` |
 
 ## Client-owned (display only)
 
