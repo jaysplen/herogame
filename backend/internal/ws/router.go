@@ -4,33 +4,47 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/herogame/backend/internal/proto"
+	"github.com/herogame/backend/internal/redisx"
 	"github.com/herogame/backend/internal/store"
+	"github.com/herogame/backend/internal/arrivals"
 	"github.com/jackc/pgx/v5"
 )
 
 // Router dispatches inbound envelopes after handshake.
 type Router struct {
-	store *store.Store
+	store       *store.Store
+	redis       *redisx.Client
+	arrivals    *arrivals.Scheduler
+	broadcaster *Broadcaster
+	move        *MoveHandler
+	buy         *BuyHandler
 }
 
 // NewRouter creates a message router.
-func NewRouter(st *store.Store) *Router {
-	return &Router{store: st}
+func NewRouter(st *store.Store, rdb *redisx.Client, sched *arrivals.Scheduler, hub *Hub) *Router {
+	r := &Router{
+		store:       st,
+		redis:       rdb,
+		arrivals:    sched,
+		broadcaster: NewBroadcaster(hub, st),
+	}
+	r.move = &MoveHandler{router: r}
+	r.buy = &BuyHandler{router: r}
+	return r
 }
 
 // Handle processes a post-handshake client message.
 func (r *Router) Handle(ctx context.Context, c *Client, env proto.Envelope) error {
 	switch env.Type {
-	case proto.TypeMoveRequest, proto.TypeUnitBuy:
-		// Implemented in BETA-003.
-		return r.sendError(c, proto.CodeUnknownMessage,
-			fmt.Sprintf("handler for %q not implemented yet", env.Type), &env.Seq)
+	case proto.TypeMoveRequest:
+		return r.move.Handle(ctx, c, env)
+	case proto.TypeUnitBuy:
+		return r.buy.Handle(ctx, c, env)
 	default:
 		return r.sendError(c, proto.CodeUnknownMessage,
-			fmt.Sprintf("unknown message type %q", env.Type), &env.Seq)
+			"unknown message type "+env.Type, &env.Seq)
 	}
 }
 

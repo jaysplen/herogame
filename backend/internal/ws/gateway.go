@@ -9,7 +9,9 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/herogame/backend/internal/proto"
+	"github.com/herogame/backend/internal/redisx"
 	"github.com/herogame/backend/internal/store"
+	"github.com/herogame/backend/internal/arrivals"
 )
 
 const (
@@ -34,13 +36,15 @@ type Gateway struct {
 	logger *slog.Logger
 }
 
-// NewGateway wires the WS hub and router.
-func NewGateway(st *store.Store, logger *slog.Logger) *Gateway {
-	hub := NewHub(logger)
+// NewGateway wires the WS hub and router. If hub is nil a new hub is created.
+func NewGateway(st *store.Store, rdb *redisx.Client, sched *arrivals.Scheduler, hub *Hub, logger *slog.Logger) *Gateway {
+	if hub == nil {
+		hub = NewHub(logger)
+	}
 	return &Gateway{
 		hub:    hub,
 		store:  st,
-		router: NewRouter(st),
+		router: NewRouter(st, rdb, sched, hub),
 		logger: logger,
 	}
 }

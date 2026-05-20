@@ -100,3 +100,24 @@ type ArrivalEntry struct {
 	OrderID  int64
 	ArriveAt time.Time
 }
+
+func respawnKey(heroID int64) string {
+	return "hero:" + strconv.FormatInt(heroID, 10) + ":respawn_until"
+}
+
+// SetRespawnUntil stores a lockout epoch (seconds) for a defeated hero.
+func (c *Client) SetRespawnUntil(ctx context.Context, heroID int64, until time.Time) error {
+	return c.rdb.Set(ctx, respawnKey(heroID), until.Unix(), until.Sub(time.Now())).Err()
+}
+
+// IsRespawning reports whether the hero is still in respawn lockout.
+func (c *Client) IsRespawning(ctx context.Context, heroID int64, now time.Time) (bool, error) {
+	val, err := c.rdb.Get(ctx, respawnKey(heroID)).Int64()
+	if err == redis.Nil {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return now.Unix() < val, nil
+}

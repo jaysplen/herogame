@@ -11,6 +11,24 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const addHeroUnits = `-- name: AddHeroUnits :exec
+INSERT INTO hero_units (hero_id, unit_id, qty)
+VALUES ($1, $2, $3)
+ON CONFLICT (hero_id, unit_id)
+DO UPDATE SET qty = hero_units.qty + EXCLUDED.qty
+`
+
+type AddHeroUnitsParams struct {
+	HeroID int64 `json:"hero_id"`
+	UnitID int64 `json:"unit_id"`
+	Qty    int32 `json:"qty"`
+}
+
+func (q *Queries) AddHeroUnits(ctx context.Context, arg AddHeroUnitsParams) error {
+	_, err := q.db.Exec(ctx, addHeroUnits, arg.HeroID, arg.UnitID, arg.Qty)
+	return err
+}
+
 const getHero = `-- name: GetHero :one
 SELECT id, player_id, name, current_node_id, base_speed, attack, defense, created_at
 FROM heroes

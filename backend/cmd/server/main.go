@@ -64,16 +64,17 @@ func main() {
 		}
 		defer rdb.Close()
 
-		gw := ws.NewGateway(st, logger)
-		wsHandler = ws.Handler(gw)
-		logger.Info("websocket gateway enabled", slog.String("path", "/ws"))
-
-		tickEngine = tick.NewEngine(st, rdb, gw.Hub(), logger)
+		hub := ws.NewHub(logger)
+		tickEngine = tick.NewEngine(st, rdb, hub, logger)
 		if err := tickEngine.Start(ctx); err != nil {
 			logger.Error("tick engine failed", slog.String("error", err.Error()))
 			os.Exit(1)
 		}
 		defer tickEngine.Stop()
+
+		gw := ws.NewGateway(st, rdb, tickEngine.Arrivals(), hub, logger)
+		wsHandler = ws.Handler(gw)
+		logger.Info("websocket gateway enabled", slog.String("path", "/ws"))
 	} else {
 		logger.Warn("DATABASE_URL unset; /ws and tick engine disabled")
 	}

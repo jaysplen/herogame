@@ -42,7 +42,7 @@ func TestHelloAck(t *testing.T) {
 	defer st.Close()
 
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError}))
-	gw := ws.NewGateway(st, logger)
+	gw := ws.NewGateway(st, nil, nil, nil, logger)
 	srv := httptest.NewServer(ws.Handler(gw))
 	defer srv.Close()
 
@@ -83,7 +83,7 @@ func TestHelloUnknownPlayer(t *testing.T) {
 	defer st.Close()
 
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
-	gw := ws.NewGateway(st, logger)
+	gw := ws.NewGateway(st, nil, nil, nil, logger)
 	srv := httptest.NewServer(ws.Handler(gw))
 	defer srv.Close()
 

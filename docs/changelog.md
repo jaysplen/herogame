@@ -29,6 +29,7 @@ Example:
 
 ## 2026-05-20
 
+- BETA-003 — WS move.request and unit.buy handlers; broadcast hub; castle.tick throttle; refactored arrivals to `internal/arrivals` (break import cycle); 2-client move.update test.
 - BETA-002 — Tick engine (1 Hz): Redis `arrivals:zset`, rehydrate on boot, arrival resolution + `move.arrived` broadcast, economy/upkeep sweeps; `GetMovementOrder`, `ListHeroes` queries.
 - BETA-001 — WebSocket gateway: `GET /ws`, JSON envelopes, 5s hello timeout, `hello.ack` bootstrap from Postgres, hub for broadcast, gateway tests.
 - BETA-001 — sqlc: `GetHeroByPlayer`, `ListEdges` queries.

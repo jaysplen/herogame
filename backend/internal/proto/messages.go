@@ -29,6 +29,36 @@ type HelloPayload struct {
 	PlayerID int64 `json:"playerId"`
 }
 
+// MoveRequestPayload is a client move command.
+type MoveRequestPayload struct {
+	HeroID       int64 `json:"heroId"`
+	TargetNodeID int64 `json:"targetNodeId"`
+}
+
+// MoveUpdatePayload confirms or broadcasts a movement order.
+type MoveUpdatePayload struct {
+	HeroID        int64 `json:"heroId"`
+	FromNodeID    int64 `json:"fromNodeId"`
+	ToNodeID      int64 `json:"toNodeId"`
+	DepartAt      int64 `json:"departAt"`
+	ArriveAt      int64 `json:"arriveAt"`
+	TravelSeconds int   `json:"travelSeconds"`
+}
+
+// UnitBuyPayload purchases units at a castle.
+type UnitBuyPayload struct {
+	CastleID   int64 `json:"castleId"`
+	UnitTypeID int64 `json:"unitTypeId"`
+	Qty        int   `json:"qty"`
+}
+
+// CastleTickPayload is a throttled economy update.
+type CastleTickPayload struct {
+	CastleID   int64   `json:"castleId"`
+	Gold       float64 `json:"gold"`
+	GoldPerMin int32  `json:"goldPerMin"`
+}
+
 // MapNodeDTO is a node in the bootstrap map snapshot.
 type MapNodeDTO struct {
 	ID   int64  `json:"id"`

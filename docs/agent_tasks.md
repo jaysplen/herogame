@@ -41,22 +41,7 @@ This is the shared work board for the project. Read [architecture.md](./architec
 
 ## Backlog
 
-### [BETA-003] Move + Buy command handlers + broadcast — **READY TO DELEGATE**
-- Owner: Agent Beta
-- Depends on: BETA-002, ALPHA-004
-- Acceptance:
-  - `move.request` handler validates per [architecture.md §10](./architecture.md#10-authoritative-time--anti-cheat-poc-posture) (ownership, in-flight guard, edge existence, respawn lockout), computes `travel_seconds` via `world.TravelSeconds`, persists `movement_orders`, `ZADD`s, broadcasts `move.update`. Rejections emit a typed `error`.
-  - `unit.buy` handler verifies `players.gold >= cost * qty`, transacts gold debit + `hero_units` upsert, and broadcasts `hero.state` + a refreshed `castle.tick`.
-  - On arrival at a node with `alive=TRUE` neutral creep, the engine calls `combat.Resolve` (see BETA-004) and broadcasts `combat.resolved`.
-  - `castle.tick` broadcasts are throttled per [architecture.md §7.3](./architecture.md#73-broadcast-frequency).
-  - Integration test: connect 2 clients, both receive each other's `move.update` events (the gateway broadcasts to all connected sessions in PoC).
-- Files to touch:
-  - `backend/internal/ws/handlers_move.go`
-  - `backend/internal/ws/handlers_buy.go`
-  - `backend/internal/ws/broadcast.go`
-- Doc refs: [architecture.md §5](./architecture.md#5-data-flow-move-command), [architecture.md §7](./architecture.md#7-websocket-protocol-contract), [game_rules.md §3](./game_rules.md#3-movement)
-
-### [BETA-004] Deterministic combat resolution
+### [BETA-004] Deterministic combat resolution — **READY TO DELEGATE**
 - Owner: Agent Beta
 - Depends on: ALPHA-004, BETA-002
 - Acceptance:
@@ -150,6 +135,12 @@ _(empty — agents move tasks here when acceptance criteria pass)_
 ---
 
 ## Done
+
+### [BETA-003] Move + Buy command handlers + broadcast
+- Owner: Agent Beta
+- Depends on: BETA-002, ALPHA-004
+- Acceptance: move.request + unit.buy handlers, broadcasts, castle.tick throttle, 2-client integration test.
+- Files: `backend/internal/ws/handlers_*.go`, `broadcast.go`, `internal/arrivals/`
 
 ### [BETA-002] Redis client + arrivals ZSET + tick engine
 - Owner: Agent Beta

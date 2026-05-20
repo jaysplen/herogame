@@ -1,4 +1,4 @@
-package tick
+package arrivals
 
 import (
 	"context"
@@ -9,26 +9,30 @@ import (
 	"github.com/herogame/backend/internal/redisx"
 	"github.com/herogame/backend/internal/store"
 	"github.com/herogame/backend/internal/store/gen"
-	"github.com/herogame/backend/internal/ws"
 )
 
-const arrivalsBatchLimit = 100
+const batchLimit = 100
 
-// Arrivals handles Redis ZSET scheduling and movement resolution.
-type Arrivals struct {
+// Broadcaster pushes server events to connected clients.
+type Broadcaster interface {
+	Broadcast(env proto.Envelope)
+}
+
+// Scheduler manages Redis ZSET arrival timing and resolution.
+type Scheduler struct {
 	store *store.Store
 	redis *redisx.Client
-	hub   *ws.Hub
+	bus   Broadcaster
 	log   *slog.Logger
 }
 
-// NewArrivals wires arrival resolution.
-func NewArrivals(st *store.Store, rdb *redisx.Client, hub *ws.Hub, log *slog.Logger) *Arrivals {
-	return &Arrivals{store: st, redis: rdb, hub: hub, log: log}
+// New creates an arrivals scheduler.
+func New(st *store.Store, rdb *redisx.Client, bus Broadcaster, log *slog.Logger) *Scheduler {
+	return &Scheduler{store: st, redis: rdb, bus: bus, log: log}
 }
 
 // Rehydrate rebuilds Redis from Postgres in-flight orders.
-func (a *Arrivals) Rehydrate(ctx context.Context) error {
+func (a *Scheduler) Rehydrate(ctx context.Context) error {
 	orders, err := a.store.Q.ListInFlightMovements(ctx)
 	if err != nil {
 		return err
@@ -51,13 +55,13 @@ func (a *Arrivals) Rehydrate(ctx context.Context) error {
 }
 
 // ScheduleAt adds an arrival to the Redis ZSET.
-func (a *Arrivals) ScheduleAt(ctx context.Context, orderID int64, arriveAt time.Time) error {
+func (a *Scheduler) ScheduleAt(ctx context.Context, orderID int64, arriveAt time.Time) error {
 	return a.redis.AddArrival(ctx, orderID, arriveAt)
 }
 
 // Sweep resolves due arrivals (architecture.md §6).
-func (a *Arrivals) Sweep(ctx context.Context, now time.Time) error {
-	ids, err := a.redis.DueArrivals(ctx, now, arrivalsBatchLimit)
+func (a *Scheduler) Sweep(ctx context.Context, now time.Time) error {
+	ids, err := a.redis.DueArrivals(ctx, now, batchLimit)
 	if err != nil {
 		return err
 	}
@@ -69,7 +73,7 @@ func (a *Arrivals) Sweep(ctx context.Context, now time.Time) error {
 	return nil
 }
 
-func (a *Arrivals) resolveOne(ctx context.Context, orderID int64) error {
+func (a *Scheduler) resolveOne(ctx context.Context, orderID int64) error {
 	var resolved gen.MovementOrder
 
 	err := a.store.WithTx(ctx, func(q *gen.Queries) error {
@@ -105,13 +109,13 @@ func (a *Arrivals) resolveOne(ctx context.Context, orderID int64) error {
 		return err
 	}
 
-	if a.hub != nil {
+	if a.bus != nil {
 		env, err := proto.NewEnvelope(proto.TypeMoveArrived, proto.MoveArrivedPayload{
 			HeroID: resolved.HeroID,
 			NodeID: resolved.ToNodeID,
 		}, 0)
 		if err == nil {
-			a.hub.Broadcast(env)
+			a.bus.Broadcast(env)
 		}
 	}
 

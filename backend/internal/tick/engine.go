@@ -6,38 +6,36 @@ import (
 	"runtime/debug"
 	"time"
 
+	"github.com/herogame/backend/internal/arrivals"
 	"github.com/herogame/backend/internal/redisx"
 	"github.com/herogame/backend/internal/store"
-	"github.com/herogame/backend/internal/ws"
 )
 
 // Engine runs the authoritative 1 Hz game loop.
 type Engine struct {
 	store    *store.Store
 	redis    *redisx.Client
-	hub      *ws.Hub
 	log      *slog.Logger
-	arrivals *Arrivals
+	arrivals *arrivals.Scheduler
 	economy  *Economy
 	upkeep   *Upkeep
 	cancel   context.CancelFunc
 }
 
-// NewEngine constructs a tick engine.
-func NewEngine(st *store.Store, rdb *redisx.Client, hub *ws.Hub, log *slog.Logger) *Engine {
+// NewEngine constructs a tick engine. bus receives move.arrived broadcasts (e.g. ws.Hub).
+func NewEngine(st *store.Store, rdb *redisx.Client, bus arrivals.Broadcaster, log *slog.Logger) *Engine {
 	return &Engine{
 		store:    st,
 		redis:    rdb,
-		hub:      hub,
 		log:      log,
-		arrivals: NewArrivals(st, rdb, hub, log),
+		arrivals: arrivals.New(st, rdb, bus, log),
 		economy:  NewEconomy(st, log),
 		upkeep:   NewUpkeep(st, log),
 	}
 }
 
 // Arrivals exposes the arrivals scheduler for move handlers (BETA-003).
-func (e *Engine) Arrivals() *Arrivals {
+func (e *Engine) Arrivals() *arrivals.Scheduler {
 	return e.arrivals
 }
 

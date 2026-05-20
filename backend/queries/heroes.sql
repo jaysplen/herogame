@@ -35,3 +35,9 @@ FROM hero_units hu
 INNER JOIN units u ON u.id = hu.unit_id
 WHERE hu.hero_id = $1
   AND hu.qty > 0;
+
+-- name: AddHeroUnits :exec
+INSERT INTO hero_units (hero_id, unit_id, qty)
+VALUES ($1, $2, $3)
+ON CONFLICT (hero_id, unit_id)
+DO UPDATE SET qty = hero_units.qty + EXCLUDED.qty;

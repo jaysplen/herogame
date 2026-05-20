@@ -9,6 +9,28 @@ import (
 	"context"
 )
 
+const getUnit = `-- name: GetUnit :one
+SELECT id, code, name, cost_gold, attack, defense, hp, upkeep_gold_per_hour
+FROM units
+WHERE id = $1
+`
+
+func (q *Queries) GetUnit(ctx context.Context, id int64) (Unit, error) {
+	row := q.db.QueryRow(ctx, getUnit, id)
+	var i Unit
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.Name,
+		&i.CostGold,
+		&i.Attack,
+		&i.Defense,
+		&i.Hp,
+		&i.UpkeepGoldPerHour,
+	)
+	return i, err
+}
+
 const getUnitByCode = `-- name: GetUnitByCode :one
 SELECT id, code, name, cost_gold, attack, defense, hp, upkeep_gold_per_hour
 FROM units

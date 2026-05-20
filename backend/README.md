@@ -57,7 +57,14 @@ Requires `DATABASE_URL`. Connect to `ws://localhost:8080/ws`, send `hello` withi
 
 Requires `DATABASE_URL` and `REDIS_URL`. Starts automatically with the server; rehydrates in-flight movements into Redis on boot.
 
+## WebSocket commands (BETA-003)
+
+After `hello`, clients may send:
+
+- `move.request` — `{ heroId, targetNodeId }` (must be adjacent node)
+- `unit.buy` — `{ castleId, unitTypeId, qty }` (Player1 Pikeman: unitTypeId `1`)
+
 ## Next tasks
 
-- **BETA-003** — move/buy handlers + broadcast
 - **BETA-004** — combat resolution on creep arrival
+- **GAMMA-001** — frontend WS client
