@@ -37,7 +37,10 @@ export function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }
 
-/** Progress along a move using authoritative server time (architecture.md §5). */
+/**
+ * Visual progress along a move using server-provided departAt/arriveAt and skew-corrected clock.
+ * Does not compute travel duration — that is server-only (architecture.md §10).
+ */
 export function moveProgress(
   serverNowMs: number,
   departAt: number,

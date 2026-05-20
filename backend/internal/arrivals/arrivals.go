@@ -20,8 +20,9 @@ type Broadcaster interface {
 	Broadcast(env proto.Envelope)
 }
 
-// CombatFollowUp handles post-combat WS broadcasts (optional on Broadcaster impl).
-type CombatFollowUp interface {
+// SchedulerFollowUp emits authoritative hero snapshots after arrivals/combat.
+type SchedulerFollowUp interface {
+	PostArrival(ctx context.Context, heroID int64, seq int64) error
 	PostCombat(ctx context.Context, r combat.ApplyResult, seq int64) error
 }
 
@@ -121,13 +122,24 @@ func (a *Scheduler) resolveOne(ctx context.Context, orderID int64) error {
 		return err
 	}
 
+	hero, err := a.store.Q.GetHero(ctx, resolved.HeroID)
+	if err != nil {
+		return err
+	}
+
 	if a.bus != nil {
 		env, err := proto.NewEnvelope(proto.TypeMoveArrived, proto.MoveArrivedPayload{
 			HeroID: resolved.HeroID,
-			NodeID: resolved.ToNodeID,
+			NodeID: hero.CurrentNodeID, // authoritative after combat teleport, etc.
 		}, 0)
 		if err == nil {
 			a.bus.Broadcast(env)
+		}
+	}
+
+	if follow, ok := a.bus.(SchedulerFollowUp); ok {
+		if err := follow.PostArrival(ctx, resolved.HeroID, 0); err != nil {
+			a.log.Error("post arrival broadcast", slog.String("error", err.Error()))
 		}
 	}
 
@@ -138,7 +150,7 @@ func (a *Scheduler) resolveOne(ctx context.Context, orderID int64) error {
 				a.log.Error("respawn lockout", slog.Int64("hero_id", resolved.HeroID), slog.String("error", err.Error()))
 			}
 		}
-		if follow, ok := a.bus.(CombatFollowUp); ok {
+		if follow, ok := a.bus.(SchedulerFollowUp); ok {
 			if err := follow.PostCombat(ctx, *combatResult, 0); err != nil {
 				a.log.Error("post combat broadcast", slog.String("error", err.Error()))
 			}
@@ -148,7 +160,7 @@ func (a *Scheduler) resolveOne(ctx context.Context, orderID int64) error {
 	a.log.Info("movement arrived",
 		slog.Int64("order_id", orderID),
 		slog.Int64("hero_id", resolved.HeroID),
-		slog.Int64("node_id", resolved.ToNodeID),
+		slog.Int64("node_id", hero.CurrentNodeID),
 	)
 	return nil
 }

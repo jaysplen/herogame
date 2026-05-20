@@ -161,10 +161,14 @@ func TestPoCPlaythroughSmoke(t *testing.T) {
 	}
 	readUntil(t, conn, proto.TypeMoveUpdate, 3*time.Second)
 	waitForArrival(t, eng, 10*time.Second)
-	readUntil(t, conn, proto.TypeMoveArrived, 3*time.Second)
+	arrivedEnv := readUntil(t, conn, proto.TypeMoveArrived, 3*time.Second)
 	combatEnv := readUntil(t, conn, proto.TypeCombatResolved, 5*time.Second)
 	heroEnv := readUntil(t, conn, proto.TypeHeroState, 3*time.Second)
 
+	var arrived proto.MoveArrivedPayload
+	if err := json.Unmarshal(arrivedEnv.Payload, &arrived); err != nil {
+		t.Fatal(err)
+	}
 	var combat proto.CombatResolvedPayload
 	if err := json.Unmarshal(combatEnv.Payload, &combat); err != nil {
 		t.Fatal(err)
@@ -217,6 +221,9 @@ func TestPoCPlaythroughSmoke(t *testing.T) {
 			t.Fatal("creep should be dead after win")
 		}
 	} else {
+		if arrived.NodeID != 1 {
+			t.Fatalf("move.arrived node = %d, want castle node 1 after defeat teleport", arrived.NodeID)
+		}
 		if hero, _ := st.Q.GetHero(ctx, 1); hero.CurrentNodeID != 1 {
 			t.Fatalf("defeated hero should be at castle node 1, got %d", hero.CurrentNodeID)
 		}

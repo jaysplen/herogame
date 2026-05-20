@@ -1,7 +1,10 @@
 import { useMemo } from "react";
 import { useGameStore, useServerNow } from "../state/store";
 
-/** Extrapolate gold from last authoritative tick (architecture.md §7.3). */
+/**
+ * Display-only gold estimate between server castle.tick events (architecture.md §7.3).
+ * Authoritative balance changes only on the server tick engine / buy / combat.
+ */
 export function extrapolateGold(
   anchorGold: number,
   anchorAtMs: number,

@@ -32,6 +32,11 @@ func (e *EventBus) Broadcast(env proto.Envelope) {
 	}
 }
 
+// PostArrival emits hero.state after movement resolution (authoritative snapshot).
+func (e *EventBus) PostArrival(ctx context.Context, heroID int64, seq int64) error {
+	return e.bc.BroadcastHeroState(ctx, heroID, seq)
+}
+
 // PostCombat emits combat.resolved plus balance-affecting hero/castle updates.
 func (e *EventBus) PostCombat(ctx context.Context, r combat.ApplyResult, seq int64) error {
 	env, err := proto.NewEnvelope(proto.TypeCombatResolved, r.Payload, seq)

@@ -37,6 +37,7 @@ func MustEnvelope(msgType string, payload any, seq int64) Envelope {
 }
 
 // ParseInbound decodes raw JSON into an Envelope.
+// Client-originated serverTime is ignored for game logic; only NewEnvelope timestamps are authoritative.
 func ParseInbound(data []byte) (Envelope, error) {
 	var env Envelope
 	if err := json.Unmarshal(data, &env); err != nil {

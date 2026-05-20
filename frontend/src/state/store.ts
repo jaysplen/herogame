@@ -162,14 +162,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         break;
       }
       case MsgMoveArrived: {
-        const arrived = decodePayload<{ heroId: number; nodeId: number }>(env);
-        const { hero } = get();
-        set({
-          inFlight: null,
-          hero: hero
-            ? { ...hero, currentNodeId: arrived.nodeId }
-            : hero,
-        });
+        // End travel animation only; hero.state carries authoritative position.
+        set({ inFlight: null });
         break;
       }
       case MsgCombatResolved: {

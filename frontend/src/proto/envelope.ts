@@ -14,12 +14,13 @@ export function parseEnvelope(raw: string): Envelope<unknown> {
   return env;
 }
 
+/** Outbound client envelope; serverTime is always 0 — only server outbound time is authoritative. */
 export function encodeEnvelope<T>(type: string, payload: T, seq: number): string {
   return JSON.stringify({
     type,
     payload,
     seq,
-    serverTime: Date.now(),
+    serverTime: 0,
   });
 }
 

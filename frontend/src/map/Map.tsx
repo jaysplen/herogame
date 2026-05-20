@@ -73,6 +73,7 @@ export function MapView() {
         return;
       }
 
+      // UX hint only; server validates edges and timing on move.request.
       if (!neighbors.has(targetId)) {
         showToast("Not connected to that node");
         return;

@@ -19,7 +19,7 @@ export function Gold() {
       <h2>Gold</h2>
       <p className="hud-gold-value">{display}</p>
       {goldPerMin != null ? (
-        <p className="hud-meta">+{goldPerMin} / min</p>
+        <p className="hud-meta">+{goldPerMin} / min (estimate between ticks)</p>
       ) : null}
     </section>
   );
