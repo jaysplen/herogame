@@ -41,4 +41,4 @@ Details: [docs/dev_setup.md](docs/dev_setup.md).
 
 ## Status
 
-**PoC v0.1** — docs locked; `make dev` (Postgres + Redis + migrations); backend + frontend WS client (GAMMA-001). Run: `make dev`, `cd backend && DATABASE_URL=... go run ./cmd/server`, `cd frontend && npm run dev`.
+**PoC v0.1 — complete** — See [docs/poc_review.md](docs/poc_review.md). Run: `make dev`, backend `go run ./cmd/server`, frontend `npm run dev`. Smoke: `go test ./internal/ws -run TestPoC -v`.

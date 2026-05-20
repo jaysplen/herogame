@@ -41,16 +41,41 @@ This is the shared work board for the project. Read [architecture.md](./architec
 
 ## Backlog
 
-### [LEAD-001] PoC end-to-end smoke test + balance review — **READY TO DELEGATE**
-- Owner: Project Lead Agent
+### [BACKLOG-001] OPS-002: GitHub Actions CI — **READY TO DELEGATE**
+- Owner: TBD
+- Depends on: LEAD-001
+- Acceptance: `go vet`, `go test`, frontend `npm run build` on PR; Postgres + Redis for integration tests.
+- Doc refs: [poc_review.md §7](./poc_review.md#7-follow-up-backlog-filed-in-agent_tasksmd)
+
+### [BACKLOG-002] Replay in-flight movement in hello.ack
+- Owner: TBD
+- Depends on: BETA-001
+- Acceptance: Reconnecting client receives active `movement_order` in bootstrap for interpolation.
+- Doc refs: [poc_review.md §3](./poc_review.md#3-reconciliation-ui-vs-db)
+
+### [BACKLOG-003] Server respawnUntil in hero.state
+- Owner: TBD
+- Depends on: BETA-004, GAMMA-003
+- Acceptance: Defeat sets `respawnUntil` ms in `hero.state`; client drops local-only timer.
+- Doc refs: [poc_review.md §7](./poc_review.md#7-follow-up-backlog-filed-in-agent_tasksmd)
+
+### [BACKLOG-004] hero_units[] in bootstrap / hero.state
+- Owner: TBD
 - Depends on: GAMMA-003
-- Acceptance:
-  - Scripted playthrough: connect → buy 10 Pikemen → move to Crossroads → move to Bandit Camp → combat resolves → either victory (gold +500) or defeat (respawn at castle, lockout for 60s).
-  - All client UI numbers reconcile with `combat_logs` row and `players.gold` final state.
-  - Slowdown is **observable**: a 200-unit army takes visibly longer than a 10-unit army on the same edge.
-  - Findings written to a new `docs/poc_review.md` with at least 5 follow-up tickets filed in this Backlog.
-- Files to touch: `docs/poc_review.md`, this file
-- Doc refs: [game_rules.md](./game_rules.md), [architecture.md](./architecture.md)
+- Acceptance: Army HUD lists per-unit stacks from server, not Pikeman-only inference.
+- Doc refs: [poc_review.md §3](./poc_review.md#3-reconciliation-ui-vs-db)
+
+### [BACKLOG-005] Balance: teachable first win at Bandit Camp
+- Owner: TBD
+- Depends on: LEAD-001
+- Acceptance: Documented target army size or tuned seed (gold/qty) so a new player can win in one session.
+- Doc refs: [poc_review.md §5](./poc_review.md#5-balance-findings)
+
+### [BACKLOG-006] Playwright visual smoke script
+- Owner: TBD
+- Depends on: GAMMA-003
+- Acceptance: Headless browser runs connect → buy → move → sees combat modal.
+- Doc refs: [poc_review.md §2](./poc_review.md#2-scripted-playthrough)
 
 ### [OPS-002] CI: lint + test for backend + frontend
 - Owner: TBD
@@ -74,6 +99,12 @@ _(empty — agents move tasks here when acceptance criteria pass)_
 ---
 
 ## Done
+
+### [LEAD-001] PoC end-to-end smoke test + balance review
+- Owner: Project Lead Agent
+- Depends on: GAMMA-003
+- Acceptance: `docs/poc_review.md`, `TestPoCPlaythroughSmoke`, `TestArmySlowdownObservable`, 6 backlog tickets.
+- Files: `docs/poc_review.md`, `backend/internal/ws/smoke_test.go`
 
 ### [GAMMA-003] HUD: gold, army, hero panel, combat log modal
 - Owner: Agent Gamma
