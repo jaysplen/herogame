@@ -15,9 +15,52 @@ body {
 }
 
 .app {
-  max-width: 960px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 1.5rem;
+}
+
+.app-header {
+  margin-bottom: 1rem;
+}
+
+.map-wrap {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.map-wrap .konvajs-content {
+  border-radius: 8px;
+}
+
+.map-wrap canvas {
+  background: #12141a;
+  border: 1px solid #3a3d45;
+  border-radius: 8px;
+}
+
+.toast {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  background: #3d2e00;
+  color: #f9dc5c;
+  border: 1px solid #f9dc5c;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  pointer-events: none;
+}
+
+.bootstrap-details {
+  margin-top: 1rem;
+}
+
+.bootstrap-details summary {
+  cursor: pointer;
+  color: #9aa0a6;
 }
 
 .panel {

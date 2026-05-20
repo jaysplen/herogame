@@ -29,6 +29,7 @@ Example:
 
 ## 2026-05-20
 
+- GAMMA-002 — Konva map (6 nodes, 7 edges), hero token with server-time travel interpolation, click-to-move + in-flight toast.
 - GAMMA-001 — Vite + React 18 frontend: proto mirrors, Zustand store, WS client (`hello` → `hello.ack`), `useServerNow()` clock skew, bootstrap verification UI.
 - BETA-004 — Deterministic combat (`internal/combat`): round loop, casualties, gold reward, creep defeat, respawn lockout; wired into arrival tx; `combat.resolved` + forced castle.tick/hero.state.
 - BETA-003 — WS move.request and unit.buy handlers; broadcast hub; castle.tick throttle; refactored arrivals to `internal/arrivals` (break import cycle); 2-client move.update test.

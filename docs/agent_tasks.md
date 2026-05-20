@@ -41,23 +41,7 @@ This is the shared work board for the project. Read [architecture.md](./architec
 
 ## Backlog
 
-### [GAMMA-002] Konva map: nodes, edges, hero token, click-to-move — **READY TO DELEGATE**
-- Owner: Agent Gamma
-- Depends on: GAMMA-001
-- Acceptance:
-  - `react-konva` `Stage` renders all six PoC nodes (color-coded by `kind`) and seven edges per the seeded coordinates in [architecture.md §9.2](./architecture.md#92-poc-seeded-graph-6-nodes-7-edges).
-  - The hero is drawn as a token on its `current_node_id`.
-  - Clicking a connected node (must share an edge with current node) emits `move.request`.
-  - On `move.update`, the hero token animates along the edge from `departAt` to `arriveAt`, position interpolated using `useServerNow()`; arrives at the target node within ±0.5s of `arriveAt`.
-  - In-flight, clicks on other nodes are rejected client-side with a toast ("Hero is moving").
-- Files to touch:
-  - `frontend/src/map/Map.tsx`
-  - `frontend/src/map/Node.tsx`
-  - `frontend/src/map/Edge.tsx`
-  - `frontend/src/map/HeroToken.tsx`
-- Doc refs: [architecture.md §9](./architecture.md#9-map-model), [architecture.md §5](./architecture.md#5-data-flow-move-command)
-
-### [GAMMA-003] HUD: gold, army, hero panel, combat log modal
+### [GAMMA-003] HUD: gold, army, hero panel, combat log modal — **READY TO DELEGATE**
 - Owner: Agent Gamma
 - Depends on: GAMMA-002, BETA-003, BETA-004
 - Acceptance:
@@ -105,6 +89,12 @@ _(empty — agents move tasks here when acceptance criteria pass)_
 ---
 
 ## Done
+
+### [GAMMA-002] Konva map: nodes, edges, hero token, click-to-move
+- Owner: Agent Gamma
+- Depends on: GAMMA-001
+- Acceptance: react-konva map, 6 nodes / 7 edges, click adjacent move.request, hero interpolation via useServerNow(), in-flight toast.
+- Files: `frontend/src/map/*`
 
 ### [GAMMA-001] Frontend scaffold + WS client
 - Owner: Agent Gamma

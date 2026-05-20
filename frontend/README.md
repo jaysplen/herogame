@@ -2,6 +2,8 @@
 
 Browser client: WebSocket + Zustand (GAMMA-001), Konva map (GAMMA-002), HUD (GAMMA-003).
 
+Click a **yellow-highlighted** adjacent node to move. While traveling, other clicks show “Hero is moving”.
+
 ## Run
 
 ```bash
@@ -21,5 +23,6 @@ src/
 ├── App.tsx
 ├── net/ws.ts           # WebSocket client
 ├── state/store.ts      # Zustand + useServerNow()
+├── map/                # react-konva map (GAMMA-002)
 └── proto/              # TS types mirroring backend/internal/proto
 ```
