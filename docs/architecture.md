@@ -228,7 +228,7 @@ Server → Client:
 
 | `type` | `payload` shape | Purpose |
 |---|---|---|
-| `hello.ack` | `{ playerId, heroId, castleId, mapSnapshot, heroState, gold }` | Bootstrap snapshot. |
+| `hello.ack` | `{ playerId, heroId, castleId, mapSnapshot, heroState, gold, inFlight? }` | Bootstrap snapshot; `inFlight` mirrors `move.update` when a movement is active. |
 | `move.update` | `{ heroId, fromNodeId, toNodeId, departAt, arriveAt, travelSeconds }` | Confirms a new movement order or re-broadcasts in-flight ones (e.g., on reconnect). |
 | `move.arrived` | `{ heroId, nodeId }` | Hero finished travel. |
 | `combat.resolved` | `{ heroId, creepId, outcome: "win" \| "loss", goldReward, casualties, log: CombatLogEntry[] }` | Auto-resolved fight result. |

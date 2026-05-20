@@ -60,6 +60,11 @@ func BuildHelloAck(ctx context.Context, st *store.Store, playerID int64) (proto.
 	gold, _ := player.Gold.Float64Value()
 	upkeepGph := economy.UpkeepGoldPerHour(stack)
 
+	inFlight, err := activeMovePayload(ctx, st, h.ID, armySize, int(h.BaseSpeed))
+	if err != nil {
+		return proto.HelloAckPayload{}, err
+	}
+
 	return proto.HelloAckPayload{
 		PlayerID: playerID,
 		HeroID:   h.ID,
@@ -76,6 +81,32 @@ func BuildHelloAck(ctx context.Context, st *store.Store, playerID int64) (proto.
 			UpkeepGoldPerHour: upkeepGph,
 			SpeedEffective:    world.EffectiveSpeed(int(h.BaseSpeed), armySize),
 		},
+		InFlight: inFlight,
+	}, nil
+}
+
+func activeMovePayload(ctx context.Context, st *store.Store, heroID int64, armySize, baseSpeed int) (*proto.MoveUpdatePayload, error) {
+	order, err := st.Q.GetActiveMovementByHero(ctx, heroID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	if !order.DepartAt.Valid || !order.ArriveAt.Valid {
+		return nil, nil
+	}
+	travelSec := int(order.ArriveAt.Time.Sub(order.DepartAt.Time).Seconds())
+	if travelSec < 1 {
+		travelSec = 1
+	}
+	return &proto.MoveUpdatePayload{
+		HeroID:        order.HeroID,
+		FromNodeID:    order.FromNodeID,
+		ToNodeID:      order.ToNodeID,
+		DepartAt:      order.DepartAt.Time.UnixMilli(),
+		ArriveAt:      order.ArriveAt.Time.UnixMilli(),
+		TravelSeconds: travelSec,
 	}, nil
 }
 

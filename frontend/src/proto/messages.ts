@@ -85,4 +85,6 @@ export interface HelloAckPayload {
   gold: number;
   mapSnapshot: MapSnapshot;
   heroState: HeroStatePayload;
+  /** Present when hero has an in-flight movement_order (reconnect). */
+  inFlight?: MoveUpdatePayload;
 }

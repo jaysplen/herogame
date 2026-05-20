@@ -118,4 +118,6 @@ type HelloAckPayload struct {
 	Gold        float64          `json:"gold"`
 	MapSnapshot MapSnapshot      `json:"mapSnapshot"`
 	HeroState   HeroStatePayload `json:"heroState"`
+	// InFlight is set when the hero has an active movement_order (reconnect replay).
+	InFlight *MoveUpdatePayload `json:"inFlight,omitempty"`
 }

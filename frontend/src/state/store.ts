@@ -134,7 +134,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           },
           goldAnchor: anchorFromGold(ack.gold, gpm, env.serverTime),
           map: ack.mapSnapshot,
-          inFlight: null,
+          inFlight: ack.inFlight ?? null,
           respawnUntilMs: null,
           connection: { status: "connected", error: null },
         });

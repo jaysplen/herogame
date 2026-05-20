@@ -41,13 +41,7 @@ This is the shared work board for the project. Read [architecture.md](./architec
 
 ## Backlog
 
-### [BACKLOG-002] Replay in-flight movement in hello.ack — **READY TO DELEGATE**
-- Owner: TBD
-- Depends on: BETA-001
-- Acceptance: Reconnecting client receives active `movement_order` in bootstrap for interpolation.
-- Doc refs: [poc_review.md §3](./poc_review.md#3-reconciliation-ui-vs-db)
-
-### [BACKLOG-003] Server respawnUntil in hero.state
+### [BACKLOG-003] Server respawnUntil in hero.state — **READY TO DELEGATE**
 - Owner: TBD
 - Depends on: BETA-004, GAMMA-003
 - Acceptance: Defeat sets `respawnUntil` ms in `hero.state`; client drops local-only timer.
@@ -86,6 +80,12 @@ _(empty — agents move tasks here when acceptance criteria pass)_
 ---
 
 ## Done
+
+### [BACKLOG-002] Replay in-flight movement in hello.ack
+- Owner: Agent
+- Depends on: BETA-001
+- Acceptance: `hello.ack.inFlight` optional `MoveUpdatePayload`; client store restores `inFlight` on reconnect.
+- Files: `bootstrap.go`, `proto/messages.go`, `bootstrap_test.go`, frontend `store.ts`
 
 ### [BACKLOG-001] OPS-002: GitHub Actions CI
 - Owner: Agent

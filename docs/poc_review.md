@@ -51,7 +51,7 @@ cd backend && go test ./internal/ws -run TestArmySlowdownObservable -count=1 -v
 | Hero node | `heroes.current_node_id` | `hero.state` / map token | Updates on `move.arrived` |
 | Travel time | `movement_orders.arrive_at - depart_at` | `move.update` + `useServerNow()` | Client animation should land within ±0.5s of `arriveAt` |
 
-**Gap:** `hello.ack` does not yet include in-flight `movement_order` for reconnect (see BACKLOG-002).
+**Reconnect:** `hello.ack.inFlight` replays active `movement_order` (BACKLOG-002, done).
 
 ---
 
