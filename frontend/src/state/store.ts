@@ -1,0 +1,199 @@
+import { useEffect, useState } from "react";
+import { create } from "zustand";
+import type { Envelope } from "../proto/envelope";
+import { decodePayload } from "../proto/envelope";
+import type { ErrorPayload } from "../proto/errors";
+import {
+  MsgCastleTick,
+  MsgCombatResolved,
+  MsgHelloAck,
+  MsgHeroState,
+  MsgMoveArrived,
+  MsgMoveUpdate,
+  MsgError,
+} from "../proto/types";
+import type {
+  CastleTickPayload,
+  CombatResolvedPayload,
+  HelloAckPayload,
+  HeroStatePayload,
+  MapSnapshot,
+  MoveUpdatePayload,
+} from "../proto/messages";
+
+export type ConnectionStatus =
+  | "disconnected"
+  | "connecting"
+  | "connected"
+  | "error";
+
+export interface ConnectionSlice {
+  status: ConnectionStatus;
+  error: string | null;
+}
+
+export interface PlayerSlice {
+  playerId: number | null;
+  gold: number | null;
+}
+
+export interface CastleSlice {
+  castleId: number | null;
+  gold: number | null;
+  goldPerMin: number | null;
+}
+
+interface GameState {
+  connection: ConnectionSlice;
+  clockSkewMs: number;
+  player: PlayerSlice;
+  hero: HeroStatePayload | null;
+  castle: CastleSlice;
+  map: MapSnapshot | null;
+  inFlight: MoveUpdatePayload | null;
+  bootstrap: HelloAckPayload | null;
+  lastCombat: CombatResolvedPayload | null;
+  lastError: ErrorPayload | null;
+  lastEnvelope: Envelope<unknown> | null;
+
+  setConnection: (patch: Partial<ConnectionSlice>) => void;
+  applyEnvelope: (env: Envelope<unknown>) => void;
+  reset: () => void;
+}
+
+const initialCastle: CastleSlice = {
+  castleId: null,
+  gold: null,
+  goldPerMin: null,
+};
+
+const initialPlayer: PlayerSlice = {
+  playerId: null,
+  gold: null,
+};
+
+export const useGameStore = create<GameState>((set, get) => ({
+  connection: { status: "disconnected", error: null },
+  clockSkewMs: 0,
+  player: { ...initialPlayer },
+  hero: null,
+  castle: { ...initialCastle },
+  map: null,
+  inFlight: null,
+  bootstrap: null,
+  lastCombat: null,
+  lastError: null,
+  lastEnvelope: null,
+
+  setConnection: (patch) =>
+    set((s) => ({
+      connection: { ...s.connection, ...patch },
+    })),
+
+  applyEnvelope: (env) => {
+    const skew = env.serverTime - Date.now();
+    set({ clockSkewMs: skew, lastEnvelope: env });
+
+    switch (env.type) {
+      case MsgHelloAck: {
+        const ack = decodePayload<HelloAckPayload>(env);
+        set({
+          bootstrap: ack,
+          player: { playerId: ack.playerId, gold: ack.gold },
+          hero: ack.heroState,
+          castle: {
+            castleId: ack.castleId,
+            gold: ack.gold,
+            goldPerMin: 60,
+          },
+          map: ack.mapSnapshot,
+          inFlight: null,
+          connection: { status: "connected", error: null },
+        });
+        break;
+      }
+      case MsgHeroState: {
+        const hero = decodePayload<HeroStatePayload>(env);
+        set({ hero });
+        break;
+      }
+      case MsgCastleTick: {
+        const tick = decodePayload<CastleTickPayload>(env);
+        const { player } = get();
+        set({
+          player: { ...player, gold: tick.gold },
+          castle: {
+            castleId: tick.castleId,
+            gold: tick.gold,
+            goldPerMin: tick.goldPerMin,
+          },
+        });
+        break;
+      }
+      case MsgMoveUpdate: {
+        const move = decodePayload<MoveUpdatePayload>(env);
+        set({ inFlight: move });
+        break;
+      }
+      case MsgMoveArrived: {
+        const arrived = decodePayload<{ heroId: number; nodeId: number }>(env);
+        const { hero } = get();
+        set({
+          inFlight: null,
+          hero: hero
+            ? { ...hero, currentNodeId: arrived.nodeId }
+            : hero,
+        });
+        break;
+      }
+      case MsgCombatResolved: {
+        const combat = decodePayload<CombatResolvedPayload>(env);
+        set({ lastCombat: combat });
+        break;
+      }
+      case MsgError: {
+        const err = decodePayload<ErrorPayload>(env);
+        set({ lastError: err });
+        break;
+      }
+      default:
+        break;
+    }
+  },
+
+  reset: () =>
+    set({
+      connection: { status: "disconnected", error: null },
+      clockSkewMs: 0,
+      player: { ...initialPlayer },
+      hero: null,
+      castle: { ...initialCastle },
+      map: null,
+      inFlight: null,
+      bootstrap: null,
+      lastCombat: null,
+      lastError: null,
+      lastEnvelope: null,
+    }),
+}));
+
+/** Authoritative server clock: Date.now() + skew (architecture.md §10). */
+export function serverNow(): number {
+  return Date.now() + useGameStore.getState().clockSkewMs;
+}
+
+/** Reactive hook for UI that needs live server time. */
+export function useServerNow(intervalMs = 100): number {
+  const skew = useGameStore((s) => s.clockSkewMs);
+  const [now, setNow] = useState(() => Date.now() + skew);
+
+  useEffect(() => {
+    setNow(Date.now() + skew);
+    const id = setInterval(() => {
+      setNow(Date.now() + useGameStore.getState().clockSkewMs);
+    }, intervalMs);
+    return () => clearInterval(id);
+  }, [skew, intervalMs]);
+
+  return now;
+}

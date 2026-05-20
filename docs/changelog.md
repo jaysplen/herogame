@@ -29,6 +29,7 @@ Example:
 
 ## 2026-05-20
 
+- GAMMA-001 — Vite + React 18 frontend: proto mirrors, Zustand store, WS client (`hello` → `hello.ack`), `useServerNow()` clock skew, bootstrap verification UI.
 - BETA-004 — Deterministic combat (`internal/combat`): round loop, casualties, gold reward, creep defeat, respawn lockout; wired into arrival tx; `combat.resolved` + forced castle.tick/hero.state.
 - BETA-003 — WS move.request and unit.buy handlers; broadcast hub; castle.tick throttle; refactored arrivals to `internal/arrivals` (break import cycle); 2-client move.update test.
 - BETA-002 — Tick engine (1 Hz): Redis `arrivals:zset`, rehydrate on boot, arrival resolution + `move.arrived` broadcast, economy/upkeep sweeps; `GetMovementOrder`, `ListHeroes` queries.

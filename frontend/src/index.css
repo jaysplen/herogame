@@ -1,0 +1,42 @@
+:root {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  line-height: 1.5;
+  color: #e8e6e3;
+  background: #1a1b1e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.panel {
+  background: #25262b;
+  border: 1px solid #3a3d45;
+  border-radius: 8px;
+  padding: 1rem;
+  overflow: auto;
+  font-size: 0.8rem;
+}
+
+.panel.error {
+  border-color: #8b3a3a;
+}
+
+.muted {
+  color: #9aa0a6;
+}
+
+h1 {
+  margin-top: 0;
+}

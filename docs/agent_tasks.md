@@ -41,24 +41,7 @@ This is the shared work board for the project. Read [architecture.md](./architec
 
 ## Backlog
 
-### [GAMMA-001] Frontend scaffold + WS client
-- Owner: Agent Gamma
-- Depends on: BETA-001
-- Acceptance:
-  - `frontend/` exists as a Vite + React 18 + TypeScript app, started with `pnpm dev`.
-  - `frontend/src/net/ws.ts` opens a WS to `ws://localhost:8080/ws`, sends `hello`, decodes envelopes into strict TS types mirrored from `backend/internal/proto`.
-  - `frontend/src/state/store.ts` is a Zustand store with slices for `connection`, `player`, `hero`, `castle`, `map`, `inFlight`.
-  - Clock skew is computed from `serverTime` on every inbound envelope and exposed as `useServerNow()`.
-  - A bare `App.tsx` renders connection status + bootstrap snapshot JSON for verification.
-- Files to touch:
-  - `frontend/package.json`, `frontend/vite.config.ts`, `frontend/tsconfig.json`
-  - `frontend/src/main.tsx`, `frontend/src/App.tsx`
-  - `frontend/src/net/ws.ts`
-  - `frontend/src/state/store.ts`
-  - `frontend/src/proto/*.ts` (mirrors `backend/internal/proto`)
-- Doc refs: [architecture.md §7](./architecture.md#7-websocket-protocol-contract), [architecture.md §10](./architecture.md#10-authoritative-time--anti-cheat-poc-posture)
-
-### [GAMMA-002] Konva map: nodes, edges, hero token, click-to-move
+### [GAMMA-002] Konva map: nodes, edges, hero token, click-to-move — **READY TO DELEGATE**
 - Owner: Agent Gamma
 - Depends on: GAMMA-001
 - Acceptance:
@@ -122,6 +105,12 @@ _(empty — agents move tasks here when acceptance criteria pass)_
 ---
 
 ## Done
+
+### [GAMMA-001] Frontend scaffold + WS client
+- Owner: Agent Gamma
+- Depends on: BETA-001
+- Acceptance: Vite + React 18 + TS, ws.ts hello handshake, Zustand slices, useServerNow(), bootstrap JSON in App.
+- Files: `frontend/src/{net,state,proto}/`, `App.tsx`
 
 ### [BETA-004] Deterministic combat resolution
 - Owner: Agent Beta

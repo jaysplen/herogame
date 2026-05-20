@@ -65,12 +65,20 @@ cd backend && go run ./cmd/server
 curl http://localhost:8080/healthz      # {"status":"ok"}
 ```
 
-## Full PoC loop (once backend/frontend exist)
+## Frontend (GAMMA-001)
+
+```bash
+cd frontend && npm install && npm run dev
+```
+
+Opens http://localhost:5173 (WebSocket to `ws://localhost:8080/ws`, Player 1).
+
+## Full PoC loop
 
 ```bash
 make dev
 cd backend && go run ./cmd/server
-cd frontend && pnpm dev
+cd frontend && npm run dev
 ```
 
 See [architecture.md §12](./architecture.md#12-build--run-reference-not-poc-scope).

@@ -41,4 +41,4 @@ Details: [docs/dev_setup.md](docs/dev_setup.md).
 
 ## Status
 
-**PoC v0.1** — docs locked; `make dev` (Postgres + Redis + migrations); backend HTTP (ALPHA-001). Run: `make dev` then `cd backend && DATABASE_URL=... go run ./cmd/server`. Frontend not yet implemented.
+**PoC v0.1** — docs locked; `make dev` (Postgres + Redis + migrations); backend + frontend WS client (GAMMA-001). Run: `make dev`, `cd backend && DATABASE_URL=... go run ./cmd/server`, `cd frontend && npm run dev`.
