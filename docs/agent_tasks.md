@@ -41,44 +41,6 @@ This is the shared work board for the project. Read [architecture.md](./architec
 
 ## Backlog
 
-### [ALPHA-001] Initialize Go module + chi router + structured logging — **READY TO DELEGATE**
-- Owner: Agent Alpha
-- Depends on: -
-- Acceptance:
-  - `backend/go.mod` exists with module path `github.com/herogame/backend`, Go 1.22+.
-  - `go run ./cmd/server` boots and binds `:8080`.
-  - `GET /healthz` returns HTTP 200 with body `{"status":"ok"}`.
-  - All log lines emit via `log/slog` as JSON to stdout (no `fmt.Println`).
-  - `go vet ./...` is clean.
-- Files to touch:
-  - `backend/go.mod`, `backend/go.sum`
-  - `backend/cmd/server/main.go`
-  - `backend/internal/httpsrv/router.go`
-  - `backend/internal/httpsrv/healthz.go`
-- Doc refs: [architecture.md §2](./architecture.md#2-tech-stack--rationale), [architecture.md §3](./architecture.md#3-repository-layout)
-
-### [ALPHA-002] PoC SQL migrations + map seed — **READY TO DELEGATE**
-- Owner: Agent Alpha
-- Depends on: ALPHA-001
-- Acceptance:
-  - `pressly/goose` integrated; `goose -dir backend/migrations postgres "$DSN" up` succeeds against a fresh Postgres 16.
-  - Migrations create all 10 tables exactly as specified in [architecture.md §8](./architecture.md#8-database-schema-poc-v01) (column types, constraints, indexes including the partial index on `movement_orders`).
-  - Seed migration `0002_seed_world.sql` inserts:
-    - Two `players` (Player1, Player2) with `gold = 200`.
-    - Six `map_nodes` and seven bidirectional `map_edges` per [architecture.md §9.2](./architecture.md#92-poc-seeded-graph-6-nodes-7-edges).
-    - One `castles` row per player at the correct node, `gold_per_min = 60`.
-    - One `heroes` row per player at their castle's node with defaults from [game_rules.md §10](./game_rules.md#10-tuning-knobs-one-place-to-change).
-    - One `units` row for `pikeman` with the catalog values from [game_rules.md §10](./game_rules.md#10-tuning-knobs-one-place-to-change).
-    - One `neutral_creeps` row at node 5 ("Bandit Camp") with `qty = 50`, `gold_reward = 500`, linked to `units.pikeman`.
-  - `goose down` cleanly reverses every up migration.
-  - A short `backend/migrations/README.md` documents how to run.
-- Files to touch:
-  - `backend/migrations/0001_init.sql`
-  - `backend/migrations/0002_seed_world.sql`
-  - `backend/migrations/README.md`
-  - `backend/internal/store/migrate.go` (programmatic `goose up` invocable from `cmd/server` on startup)
-- Doc refs: [architecture.md §8](./architecture.md#8-database-schema-poc-v01), [architecture.md §9.2](./architecture.md#92-poc-seeded-graph-6-nodes-7-edges), [game_rules.md §10](./game_rules.md#10-tuning-knobs-one-place-to-change)
-
 ### [ALPHA-003] sqlc-generated store package — **READY TO DELEGATE**
 - Owner: Agent Alpha
 - Depends on: ALPHA-002
@@ -237,15 +199,6 @@ This is the shared work board for the project. Read [architecture.md](./architec
 - Files to touch: `docs/poc_review.md`, this file
 - Doc refs: [game_rules.md](./game_rules.md), [architecture.md](./architecture.md)
 
-### [OPS-001] docker-compose for Postgres + Redis (post-PoC plumbing)
-- Owner: TBD
-- Depends on: -
-- Acceptance:
-  - `docker-compose.yml` at repo root with `postgres:16` and `redis:7` services on a private network, ports exposed to host, named volumes for durability.
-  - `.env.example` documents `DATABASE_URL`, `REDIS_URL`.
-  - `make dev` (or pnpm script) brings the stack up and runs migrations.
-- Notes: Not blocking PoC code authoring; developers can run Postgres/Redis however they like until this lands. Captured here so it isn't forgotten.
-
 ### [OPS-002] CI: lint + test for backend + frontend
 - Owner: TBD
 - Depends on: ALPHA-003, GAMMA-001
@@ -269,4 +222,27 @@ _(empty — agents move tasks here when acceptance criteria pass)_
 
 ## Done
 
-_(empty — Project Lead moves tasks here after sign-off and appends to [changelog.md](./changelog.md))_
+### [ALPHA-002] PoC SQL migrations + map seed
+- Owner: Agent Alpha
+- Depends on: ALPHA-001
+- Acceptance: goose up/down verified; 10 tables + seed (6 nodes, 14 edges, 2 players, castles, heroes, pikeman, Bandit Camp).
+- Files: `backend/migrations/`, `backend/internal/store/migrate.go`, `backend/migrations/README.md`
+
+### [ALPHA-001] Initialize Go module + chi router + structured logging
+- Owner: Agent Alpha
+- Depends on: -
+- Acceptance:
+  - `backend/go.mod` with `github.com/herogame/backend`, Go 1.22+.
+  - `go run ./cmd/server` binds `:8080`; `GET /healthz` → `{"status":"ok"}`.
+  - JSON `slog` logging; `go vet ./...` clean.
+- Files: `backend/go.mod`, `backend/go.sum`, `backend/cmd/server/main.go`, `backend/internal/httpsrv/`
+
+### [OPS-001] docker-compose for Postgres + Redis
+- Owner: Agent (OPS)
+- Depends on: -
+- Acceptance:
+  - `docker-compose.yml` at repo root with `postgres:16` and `redis:7` on network `herogame`, host ports, named volumes `postgres_data` / `redis_data`, healthchecks.
+  - `.env.example` documents `DATABASE_URL`, `REDIS_URL`, and compose-aligned `POSTGRES_*` / `REDIS_PORT`.
+  - `make dev` runs `docker compose up -d --wait` then `make migrate` (skips gracefully until ALPHA-002 adds `backend/migrations/`).
+  - [docs/dev_setup.md](./dev_setup.md) documents quick start and Make targets.
+- Files: `docker-compose.yml`, `.env.example`, `Makefile`, `docs/dev_setup.md`, `README.md` (dev section)

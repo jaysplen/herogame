@@ -23,12 +23,21 @@ backend/
 └── queries/        # sqlc input
 ```
 
-## Bootstrap
+## Run
 
-This directory is **not implemented yet**. It is created by task **[ALPHA-001]** in [docs/agent_tasks.md](../docs/agent_tasks.md):
+```bash
+# from repo root
+make dev
+cp ../.env.example ../.env   # optional
 
-- Initialize `go.mod` (`github.com/herogame/backend`)
-- Chi router + `GET /healthz`
-- Structured logging via `log/slog`
+cd backend
+export DATABASE_URL=postgres://herogame:herogame@localhost:5432/herogame?sslmode=disable
+go run ./cmd/server          # runs migrations when DATABASE_URL is set (disable: RUN_MIGRATIONS=0)
+curl http://localhost:8080/healthz
+```
 
-Follow-on: ALPHA-002 (migrations + seed), ALPHA-003 (sqlc store).
+Migrations only: `make migrate` from repo root, or see [migrations/README.md](./migrations/README.md).
+
+## Next task
+
+- **ALPHA-003** — sqlc store package

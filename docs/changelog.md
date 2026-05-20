@@ -29,6 +29,11 @@ Example:
 
 ## 2026-05-20
 
+- ALPHA-002 — Goose migrations: `00001_init.sql` (10 tables + partial index), `00002_seed_world.sql` (PoC map + players + Bandit Camp); `store.MigrateUp`; `RUN_MIGRATIONS` on server when `DATABASE_URL` set.
+- ALPHA-001 — Go backend skeleton: chi router, `GET /healthz`, JSON `slog`, graceful shutdown (`backend/cmd/server`, `backend/internal/httpsrv/`).
+- [fix] Makefile `migrate` target runs in a single shell so skip path does not fall through to `goose not found`.
+- OPS-001 — Local dev infra: `docker-compose.yml` (Postgres 16 + Redis 7 on `herogame` network), `.env.example`, `Makefile` (`dev`, `down`, `migrate`), [dev_setup.md](./dev_setup.md).
+  - `make migrate` skips until ALPHA-002 adds `backend/migrations/`.
 - [chore] Initialized git repo + root plumbing (`.gitignore`, `README.md`, `pnpm-workspace.yaml`, `backend/README.md`, `frontend/README.md`).
 - LEAD foundation pass — Project Lead Agent established the `/docs` knowledge base.
   - Created [architecture.md](./architecture.md): PoC scope, locked stack (Go + Postgres 16 + Redis 7 + WebSockets + React/Konva), system + sequence diagrams, full WS protocol contract, complete schema for all 10 PoC tables, tick engine design, 6-node seeded map, future-expansion hooks.
