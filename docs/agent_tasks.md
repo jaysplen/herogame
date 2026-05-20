@@ -41,22 +41,7 @@ This is the shared work board for the project. Read [architecture.md](./architec
 
 ## Backlog
 
-### [GAMMA-003] HUD: gold, army, hero panel, combat log modal — **READY TO DELEGATE**
-- Owner: Agent Gamma
-- Depends on: GAMMA-002, BETA-003, BETA-004
-- Acceptance:
-  - Gold readout updates per second by extrapolating from last `castle.tick`'s `goldPerMin`, snapping to authoritative value on each new `castle.tick` / `unit.buy` / `combat.resolved`.
-  - Army panel lists `hero_units` with a `[+]` button that emits `unit.buy { qty: 1 }`; `[+10]` shortcut. Disable if `gold < cost * qty`.
-  - Hero panel shows `speedEffective` from latest `hero.state` and a small badge while respawning.
-  - On `combat.resolved`, a modal displays outcome + full round log.
-- Files to touch:
-  - `frontend/src/hud/Gold.tsx`
-  - `frontend/src/hud/ArmyPanel.tsx`
-  - `frontend/src/hud/HeroPanel.tsx`
-  - `frontend/src/hud/CombatModal.tsx`
-- Doc refs: [game_rules.md §5](./game_rules.md#5-anti-snowball-b-upkeep-gold-cost), [game_rules.md §6](./game_rules.md#6-combat), [architecture.md §7.3](./architecture.md#73-broadcast-frequency)
-
-### [LEAD-001] PoC end-to-end smoke test + balance review
+### [LEAD-001] PoC end-to-end smoke test + balance review — **READY TO DELEGATE**
 - Owner: Project Lead Agent
 - Depends on: GAMMA-003
 - Acceptance:
@@ -89,6 +74,12 @@ _(empty — agents move tasks here when acceptance criteria pass)_
 ---
 
 ## Done
+
+### [GAMMA-003] HUD: gold, army, hero panel, combat log modal
+- Owner: Agent Gamma
+- Depends on: GAMMA-002, BETA-003, BETA-004
+- Acceptance: extrapolated gold, Pikeman buy +1/+10, hero speed + respawn badge, combat modal on combat.resolved.
+- Files: `frontend/src/hud/*`
 
 ### [GAMMA-002] Konva map: nodes, edges, hero token, click-to-move
 - Owner: Agent Gamma

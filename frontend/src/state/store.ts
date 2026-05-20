@@ -3,6 +3,7 @@ import { create } from "zustand";
 import type { Envelope } from "../proto/envelope";
 import { decodePayload } from "../proto/envelope";
 import type { ErrorPayload } from "../proto/errors";
+import { CASTLE_GOLD_PER_MIN_DEFAULT, RESPAWN_LOCKOUT_MS } from "../hud/constants";
 import {
   MsgCastleTick,
   MsgCombatResolved,
@@ -43,9 +44,18 @@ export interface CastleSlice {
   goldPerMin: number | null;
 }
 
+/** Authoritative gold snapshot for client extrapolation (architecture.md §7.3). */
+export interface GoldAnchor {
+  gold: number;
+  atMs: number;
+  goldPerMin: number;
+}
+
 interface GameState {
   connection: ConnectionSlice;
   clockSkewMs: number;
+  goldAnchor: GoldAnchor | null;
+  respawnUntilMs: number | null;
   player: PlayerSlice;
   hero: HeroStatePayload | null;
   castle: CastleSlice;
@@ -53,11 +63,13 @@ interface GameState {
   inFlight: MoveUpdatePayload | null;
   bootstrap: HelloAckPayload | null;
   lastCombat: CombatResolvedPayload | null;
+  combatModalOpen: boolean;
   lastError: ErrorPayload | null;
   lastEnvelope: Envelope<unknown> | null;
 
   setConnection: (patch: Partial<ConnectionSlice>) => void;
   applyEnvelope: (env: Envelope<unknown>) => void;
+  dismissCombatModal: () => void;
   reset: () => void;
 }
 
@@ -72,9 +84,19 @@ const initialPlayer: PlayerSlice = {
   gold: null,
 };
 
+function anchorFromGold(
+  gold: number,
+  goldPerMin: number,
+  serverTimeMs: number,
+): GoldAnchor {
+  return { gold, atMs: serverTimeMs, goldPerMin };
+}
+
 export const useGameStore = create<GameState>((set, get) => ({
   connection: { status: "disconnected", error: null },
   clockSkewMs: 0,
+  goldAnchor: null,
+  respawnUntilMs: null,
   player: { ...initialPlayer },
   hero: null,
   castle: { ...initialCastle },
@@ -82,6 +104,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   inFlight: null,
   bootstrap: null,
   lastCombat: null,
+  combatModalOpen: false,
   lastError: null,
   lastEnvelope: null,
 
@@ -90,6 +113,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       connection: { ...s.connection, ...patch },
     })),
 
+  dismissCombatModal: () => set({ combatModalOpen: false }),
+
   applyEnvelope: (env) => {
     const skew = env.serverTime - Date.now();
     set({ clockSkewMs: skew, lastEnvelope: env });
@@ -97,6 +122,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     switch (env.type) {
       case MsgHelloAck: {
         const ack = decodePayload<HelloAckPayload>(env);
+        const gpm = CASTLE_GOLD_PER_MIN_DEFAULT;
         set({
           bootstrap: ack,
           player: { playerId: ack.playerId, gold: ack.gold },
@@ -104,10 +130,12 @@ export const useGameStore = create<GameState>((set, get) => ({
           castle: {
             castleId: ack.castleId,
             gold: ack.gold,
-            goldPerMin: 60,
+            goldPerMin: gpm,
           },
+          goldAnchor: anchorFromGold(ack.gold, gpm, env.serverTime),
           map: ack.mapSnapshot,
           inFlight: null,
+          respawnUntilMs: null,
           connection: { status: "connected", error: null },
         });
         break;
@@ -127,6 +155,7 @@ export const useGameStore = create<GameState>((set, get) => ({
             gold: tick.gold,
             goldPerMin: tick.goldPerMin,
           },
+          goldAnchor: anchorFromGold(tick.gold, tick.goldPerMin, env.serverTime),
         });
         break;
       }
@@ -148,7 +177,14 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
       case MsgCombatResolved: {
         const combat = decodePayload<CombatResolvedPayload>(env);
-        set({ lastCombat: combat });
+        const patch: Partial<GameState> = {
+          lastCombat: combat,
+          combatModalOpen: true,
+        };
+        if (combat.outcome === "loss") {
+          patch.respawnUntilMs = env.serverTime + RESPAWN_LOCKOUT_MS;
+        }
+        set(patch);
         break;
       }
       case MsgError: {
@@ -165,6 +201,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({
       connection: { status: "disconnected", error: null },
       clockSkewMs: 0,
+      goldAnchor: null,
+      respawnUntilMs: null,
       player: { ...initialPlayer },
       hero: null,
       castle: { ...initialCastle },
@@ -172,6 +210,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       inFlight: null,
       bootstrap: null,
       lastCombat: null,
+      combatModalOpen: false,
       lastError: null,
       lastEnvelope: null,
     }),

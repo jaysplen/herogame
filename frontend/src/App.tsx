@@ -1,13 +1,12 @@
 import { useEffect } from "react";
+import { Hud } from "./hud/Hud";
 import { MapView } from "./map/Map";
 import { connect, disconnect } from "./net/ws";
 import { useGameStore } from "./state/store";
 
 export default function App() {
   const connection = useGameStore((s) => s.connection);
-  const bootstrap = useGameStore((s) => s.bootstrap);
   const lastError = useGameStore((s) => s.lastError);
-  const hero = useGameStore((s) => s.hero);
 
   useEffect(() => {
     connect(1);
@@ -21,13 +20,6 @@ export default function App() {
         <p>
           Connection: <strong>{connection.status}</strong>
           {connection.error ? ` — ${connection.error}` : null}
-          {hero ? (
-            <>
-              {" "}
-              · Node <strong>{hero.currentNodeId}</strong> · Army{" "}
-              <strong>{hero.armySize}</strong>
-            </>
-          ) : null}
         </p>
       </header>
 
@@ -37,16 +29,12 @@ export default function App() {
         </pre>
       ) : null}
 
-      <MapView />
-
-      <details className="bootstrap-details">
-        <summary>Bootstrap snapshot</summary>
-        {bootstrap ? (
-          <pre className="panel">{JSON.stringify(bootstrap, null, 2)}</pre>
-        ) : (
-          <p className="muted">Waiting for hello.ack…</p>
-        )}
-      </details>
+      <div className="layout">
+        <Hud />
+        <div className="layout-main">
+          <MapView />
+        </div>
+      </div>
     </main>
   );
 }

@@ -2,6 +2,8 @@
 
 Browser client: WebSocket + Zustand (GAMMA-001), Konva map (GAMMA-002), HUD (GAMMA-003).
 
+**HUD:** Gold ticks up between `castle.tick` messages; buy Pikemen (+1 / +10) at your castle; combat modal opens on fight resolution.
+
 Click a **yellow-highlighted** adjacent node to move. While traveling, other clicks show “Hero is moving”.
 
 ## Run
@@ -24,5 +26,6 @@ src/
 ├── net/ws.ts           # WebSocket client
 ├── state/store.ts      # Zustand + useServerNow()
 ├── map/                # react-konva map (GAMMA-002)
+├── hud/                # gold, army, hero, combat modal (GAMMA-003)
 └── proto/              # TS types mirroring backend/internal/proto
 ```
