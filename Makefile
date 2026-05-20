@@ -48,6 +48,9 @@ migrate:
 	}; \
 	$(GOOSE) -dir $(GOOSE_DIR) postgres "$(DATABASE_URL)" up
 
+sqlc:
+	cd backend && sqlc generate
+
 migrate-status:
 	@command -v $(GOOSE) >/dev/null 2>&1 || { echo "goose not found"; exit 1; }
 	$(GOOSE) -dir $(GOOSE_DIR) postgres "$(DATABASE_URL)" status

@@ -29,6 +29,8 @@ Example:
 
 ## 2026-05-20
 
+- ALPHA-004 — Pure domain packages: `world` (travel/upkeep slowdown), `hero` (army aggregate), `economy` (upkeep + constants); tests match game_rules.md tables.
+- ALPHA-003 — sqlc store: 7 query files, generated `internal/store/gen`, `Store` with `pgxpool` and `WithTx`, integration tests via `TEST_DATABASE_URL`.
 - ALPHA-002 — Goose migrations: `00001_init.sql` (10 tables + partial index), `00002_seed_world.sql` (PoC map + players + Bandit Camp); `store.MigrateUp`; `RUN_MIGRATIONS` on server when `DATABASE_URL` set.
 - ALPHA-001 — Go backend skeleton: chi router, `GET /healthz`, JSON `slog`, graceful shutdown (`backend/cmd/server`, `backend/internal/httpsrv/`).
 - [fix] Makefile `migrate` target runs in a single shell so skip path does not fall through to `goose not found`.

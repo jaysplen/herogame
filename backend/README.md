@@ -38,6 +38,14 @@ curl http://localhost:8080/healthz
 
 Migrations only: `make migrate` from repo root, or see [migrations/README.md](./migrations/README.md).
 
-## Next task
+## Regenerate sqlc
 
-- **ALPHA-003** — sqlc store package
+```bash
+sqlc generate   # from backend/, after editing queries/*.sql
+go test ./...   # includes store integration tests (needs Postgres)
+```
+
+## Next tasks
+
+- **BETA-001** — WebSocket gateway + envelope protocol
+- **BETA-002** — Redis arrivals ZSET + tick engine

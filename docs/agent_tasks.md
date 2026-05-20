@@ -41,42 +41,7 @@ This is the shared work board for the project. Read [architecture.md](./architec
 
 ## Backlog
 
-### [ALPHA-003] sqlc-generated store package — **READY TO DELEGATE**
-- Owner: Agent Alpha
-- Depends on: ALPHA-002
-- Acceptance:
-  - `backend/sqlc.yaml` configured; `sqlc generate` runs cleanly.
-  - `backend/queries/` contains `.sql` files with at minimum these named queries:
-    - `players.sql`: `GetPlayer`, `IncrementPlayerGold` (accepts NUMERIC delta).
-    - `heroes.sql`: `GetHero`, `UpdateHeroNode`, `ListHeroUnitsByHero`.
-    - `castles.sql`: `GetCastleByPlayer`, `ListAllCastles`.
-    - `units.sql`: `GetUnitByCode`, `ListUnits`.
-    - `map.sql`: `GetEdge` (by from/to), `ListNodes`, `ListEdgesByNode`.
-    - `movement.sql`: `InsertMovementOrder`, `GetActiveMovementByHero`, `MarkMovementArrived`, `ListInFlightMovements`.
-    - `combat.sql`: `InsertCombatLog`, `GetCreepByNode`, `SetCreepDead`.
-  - `backend/internal/store/store.go` exposes a `*Store` wrapping `*pgxpool.Pool` and the sqlc `*Queries`, with a `WithTx(ctx, fn)` helper for transactional combat resolution.
-  - Unit test `store_test.go` boots a Postgres testcontainer or uses `TEST_DATABASE_URL`, runs migrations, and exercises one query per file.
-- Files to touch:
-  - `backend/sqlc.yaml`
-  - `backend/queries/*.sql`
-  - `backend/internal/store/store.go`
-  - `backend/internal/store/gen/*.go` (sqlc output, committed)
-  - `backend/internal/store/store_test.go`
-- Doc refs: [architecture.md §8](./architecture.md#8-database-schema-poc-v01), [architecture.md §3](./architecture.md#3-repository-layout)
-
-### [ALPHA-004] Domain packages: world, hero, economy
-- Owner: Agent Alpha
-- Depends on: ALPHA-003
-- Acceptance:
-  - `internal/world/distance.go`: `TravelSeconds(distanceUnits, baseSpeed, armySize int) int` implementing the formula in [game_rules.md §3](./game_rules.md#3-movement) including the `ceil` to whole seconds and the slowdown from [game_rules.md §4](./game_rules.md#4-anti-snowball-a-upkeep-slowdown).
-  - `internal/world/distance_test.go` covers every row in the worked-example table in [game_rules.md §3.2](./game_rules.md#32-worked-examples) and §4.2.
-  - `internal/hero/army.go`: `Aggregate(hero, units) (atk, def, hp int)` per [game_rules.md §6.2](./game_rules.md#62-combatant-aggregates).
-  - `internal/economy/upkeep.go`: `UpkeepGoldPerHour(units []HeroUnit) float64`, `DeltaGoldPerSecond(upkeepGph float64, goldPerMin int) float64`.
-  - 100% of these functions are pure (no DB, no clock) for trivial testing.
-- Files to touch: `backend/internal/world/`, `backend/internal/hero/`, `backend/internal/economy/`
-- Doc refs: [game_rules.md §3](./game_rules.md#3-movement), [game_rules.md §4](./game_rules.md#4-anti-snowball-a-upkeep-slowdown), [game_rules.md §5](./game_rules.md#5-anti-snowball-b-upkeep-gold-cost), [game_rules.md §6](./game_rules.md#6-combat)
-
-### [BETA-001] WebSocket gateway: envelope + connection lifecycle
+### [BETA-001] WebSocket gateway: envelope + connection lifecycle — **READY TO DELEGATE**
 - Owner: Agent Beta
 - Depends on: ALPHA-001
 - Acceptance:
@@ -221,6 +186,18 @@ _(empty — agents move tasks here when acceptance criteria pass)_
 ---
 
 ## Done
+
+### [ALPHA-004] Domain packages: world, hero, economy
+- Owner: Agent Alpha
+- Depends on: ALPHA-003
+- Acceptance: `TravelSeconds`, `UpkeepSlowdown`, `Aggregate`, `UpkeepGoldPerHour`, `DeltaGoldPerSecond`; unit tests match game_rules.md §3.2 and §4.2 tables.
+- Files: `backend/internal/world/`, `backend/internal/hero/`, `backend/internal/economy/`
+
+### [ALPHA-003] sqlc-generated store package
+- Owner: Agent Alpha
+- Depends on: ALPHA-002
+- Acceptance: sqlc generate clean; all query files; `Store` + `WithTx`; integration tests pass against Postgres.
+- Files: `backend/sqlc.yaml`, `backend/queries/`, `backend/internal/store/`, `backend/internal/store/gen/`
 
 ### [ALPHA-002] PoC SQL migrations + map seed
 - Owner: Agent Alpha
