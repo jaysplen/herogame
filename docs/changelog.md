@@ -29,6 +29,7 @@ Example:
 
 ## 2026-05-20
 
+- BACKLOG-001 — GitHub Actions CI: backend `go vet`/`go test` with Postgres + Redis services; frontend `npm run build`.
 - LEAD-001 — PoC smoke test (`TestPoCPlaythroughSmoke`, `TestArmySlowdownObservable`), `docs/poc_review.md`, six BACKLOG follow-ups in kanban.
 - GAMMA-003 — HUD: extrapolated gold, army buy panel, hero stats + respawn badge, combat log modal.
 - GAMMA-002 — Konva map (6 nodes, 7 edges), hero token with server-time travel interpolation, click-to-move + in-flight toast.

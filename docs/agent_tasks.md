@@ -41,13 +41,7 @@ This is the shared work board for the project. Read [architecture.md](./architec
 
 ## Backlog
 
-### [BACKLOG-001] OPS-002: GitHub Actions CI — **READY TO DELEGATE**
-- Owner: TBD
-- Depends on: LEAD-001
-- Acceptance: `go vet`, `go test`, frontend `npm run build` on PR; Postgres + Redis for integration tests.
-- Doc refs: [poc_review.md §7](./poc_review.md#7-follow-up-backlog-filed-in-agent_tasksmd)
-
-### [BACKLOG-002] Replay in-flight movement in hello.ack
+### [BACKLOG-002] Replay in-flight movement in hello.ack — **READY TO DELEGATE**
 - Owner: TBD
 - Depends on: BETA-001
 - Acceptance: Reconnecting client receives active `movement_order` in bootstrap for interpolation.
@@ -77,13 +71,6 @@ This is the shared work board for the project. Read [architecture.md](./architec
 - Acceptance: Headless browser runs connect → buy → move → sees combat modal.
 - Doc refs: [poc_review.md §2](./poc_review.md#2-scripted-playthrough)
 
-### [OPS-002] CI: lint + test for backend + frontend
-- Owner: TBD
-- Depends on: ALPHA-003, GAMMA-001
-- Acceptance:
-  - GitHub Actions workflow: `go vet`, `go test`, `pnpm lint`, `pnpm typecheck`, `pnpm test` on each PR.
-  - Postgres + Redis services provisioned for backend integration tests.
-
 ---
 
 ## In Progress
@@ -99,6 +86,12 @@ _(empty — agents move tasks here when acceptance criteria pass)_
 ---
 
 ## Done
+
+### [BACKLOG-001] OPS-002: GitHub Actions CI
+- Owner: Agent
+- Depends on: LEAD-001
+- Acceptance: `.github/workflows/ci.yml` — go vet/test with Postgres 16 + Redis 7; frontend `npm ci` + build.
+- Files: `.github/workflows/ci.yml`
 
 ### [LEAD-001] PoC end-to-end smoke test + balance review
 - Owner: Project Lead Agent

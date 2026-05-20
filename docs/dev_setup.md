@@ -83,6 +83,21 @@ cd frontend && npm run dev
 
 See [architecture.md §12](./architecture.md#12-build--run-reference-not-poc-scope).
 
+## CI (BACKLOG-001)
+
+Pull requests and pushes to `master`/`main` run [.github/workflows/ci.yml](../.github/workflows/ci.yml):
+
+- **backend** — `go vet`, `go test ./...` with Postgres 16 + Redis 7 service containers
+- **frontend** — `npm ci`, `npm run build` (TypeScript + Vite)
+
+Reproduce locally:
+
+```bash
+make dev
+cd backend && go vet ./... && go test ./... -count=1
+cd frontend && npm ci && npm run build
+```
+
 ## Troubleshooting
 
 - **Port in use:** set `POSTGRES_PORT` / `REDIS_PORT` in `.env` and update `DATABASE_URL` / `REDIS_URL`.

@@ -1,0 +1,87 @@
+# BACKLOG-001 / OPS-002 — backend vet+test (Postgres + Redis) and frontend build.
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (go vet + test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: herogame
+          POSTGRES_PASSWORD: herogame
+          POSTGRES_DB: herogame
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U herogame -d herogame"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgres://herogame:herogame@localhost:5432/herogame?sslmode=disable
+      TEST_DATABASE_URL: postgres://herogame:herogame@localhost:5432/herogame?sslmode=disable
+      REDIS_URL: redis://localhost:6379/0
+      MIGRATIONS_DIR: ${{ github.workspace }}/backend/migrations
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          # Module may specify a newer Go; 1.23 satisfies docs (1.22+) on GitHub runners.
+          go-version: "1.23"
+          cache-dependency-path: backend/go.sum
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: go test
+        run: go test ./... -count=1 -timeout 3m
+
+  frontend:
+    name: Frontend (typecheck + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: npm ci
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run build

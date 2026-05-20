@@ -91,7 +91,7 @@ Formula: `travel_seconds = ceil((distance / base_speed) * upkeepSlowdown(army))`
 
 | ID | Title | Priority |
 |----|-------|----------|
-| BACKLOG-001 | OPS-002: GitHub Actions CI (go test + frontend build) | High |
+| BACKLOG-001 | OPS-002: GitHub Actions CI (go test + frontend build) | High — **Done** |
 | BACKLOG-002 | Replay in-flight movement in `hello.ack` | Medium |
 | BACKLOG-003 | Server `respawnUntil` in `hero.state` (drop client-only timer) | Medium |
 | BACKLOG-004 | `hero_units[]` in bootstrap / `hero.state` for multi-unit HUD | Medium |
