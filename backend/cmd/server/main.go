@@ -10,7 +10,9 @@ import (
 	"time"
 
 	"github.com/herogame/backend/internal/httpsrv"
+	"github.com/herogame/backend/internal/redisx"
 	"github.com/herogame/backend/internal/store"
+	"github.com/herogame/backend/internal/tick"
 	"github.com/herogame/backend/internal/ws"
 )
 
@@ -18,7 +20,16 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 	slog.SetDefault(logger)
 
-	if dsn := os.Getenv("DATABASE_URL"); dsn != "" {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	dsn := os.Getenv("DATABASE_URL")
+	redisURL := os.Getenv("REDIS_URL")
+	if redisURL == "" {
+		redisURL = "redis://localhost:6379/0"
+	}
+
+	if dsn != "" {
 		runMigrations := os.Getenv("RUN_MIGRATIONS") != "0"
 		if runMigrations {
 			logger.Info("running database migrations")
@@ -36,19 +47,35 @@ func main() {
 	}
 
 	var wsHandler http.Handler
-	if dsn := os.Getenv("DATABASE_URL"); dsn != "" {
-		ctx := context.Background()
+	var tickEngine *tick.Engine
+
+	if dsn != "" {
 		st, err := store.New(ctx, dsn)
 		if err != nil {
 			logger.Error("store init failed", slog.String("error", err.Error()))
 			os.Exit(1)
 		}
 		defer st.Close()
+
+		rdb, err := redisx.New(ctx, redisURL)
+		if err != nil {
+			logger.Error("redis init failed", slog.String("error", err.Error()))
+			os.Exit(1)
+		}
+		defer rdb.Close()
+
 		gw := ws.NewGateway(st, logger)
 		wsHandler = ws.Handler(gw)
 		logger.Info("websocket gateway enabled", slog.String("path", "/ws"))
+
+		tickEngine = tick.NewEngine(st, rdb, gw.Hub(), logger)
+		if err := tickEngine.Start(ctx); err != nil {
+			logger.Error("tick engine failed", slog.String("error", err.Error()))
+			os.Exit(1)
+		}
+		defer tickEngine.Stop()
 	} else {
-		logger.Warn("DATABASE_URL unset; /ws disabled")
+		logger.Warn("DATABASE_URL unset; /ws and tick engine disabled")
 	}
 
 	srv := &http.Server{
@@ -67,15 +94,12 @@ func main() {
 		}
 	}()
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-
+	<-ctx.Done()
 	logger.Info("shutting down")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	if err := srv.Shutdown(ctx); err != nil {
+	if err := srv.Shutdown(shutdownCtx); err != nil {
 		logger.Error("shutdown error", slog.String("error", err.Error()))
-		os.Exit(1)
 	}
 }

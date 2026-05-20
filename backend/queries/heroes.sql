@@ -9,6 +9,11 @@ FROM heroes
 WHERE player_id = $1
 LIMIT 1;
 
+-- name: ListHeroes :many
+SELECT id, player_id, name, current_node_id, base_speed, attack, defense, created_at
+FROM heroes
+ORDER BY id;
+
 -- name: UpdateHeroNode :exec
 UPDATE heroes
 SET current_node_id = $2

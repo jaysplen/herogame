@@ -35,6 +35,28 @@ func (q *Queries) GetActiveMovementByHero(ctx context.Context, heroID int64) (Mo
 	return i, err
 }
 
+const getMovementOrder = `-- name: GetMovementOrder :one
+SELECT id, hero_id, from_node_id, to_node_id, depart_at, arrive_at, status, created_at
+FROM movement_orders
+WHERE id = $1
+`
+
+func (q *Queries) GetMovementOrder(ctx context.Context, id int64) (MovementOrder, error) {
+	row := q.db.QueryRow(ctx, getMovementOrder, id)
+	var i MovementOrder
+	err := row.Scan(
+		&i.ID,
+		&i.HeroID,
+		&i.FromNodeID,
+		&i.ToNodeID,
+		&i.DepartAt,
+		&i.ArriveAt,
+		&i.Status,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const insertMovementOrder = `-- name: InsertMovementOrder :one
 INSERT INTO movement_orders (
     hero_id,

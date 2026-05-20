@@ -11,6 +11,11 @@ INSERT INTO movement_orders (
 )
 RETURNING id, hero_id, from_node_id, to_node_id, depart_at, arrive_at, status, created_at;
 
+-- name: GetMovementOrder :one
+SELECT id, hero_id, from_node_id, to_node_id, depart_at, arrive_at, status, created_at
+FROM movement_orders
+WHERE id = $1;
+
 -- name: GetActiveMovementByHero :one
 SELECT id, hero_id, from_node_id, to_node_id, depart_at, arrive_at, status, created_at
 FROM movement_orders

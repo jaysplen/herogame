@@ -118,6 +118,41 @@ func (q *Queries) ListHeroUnitsByHero(ctx context.Context, heroID int64) ([]List
 	return items, nil
 }
 
+const listHeroes = `-- name: ListHeroes :many
+SELECT id, player_id, name, current_node_id, base_speed, attack, defense, created_at
+FROM heroes
+ORDER BY id
+`
+
+func (q *Queries) ListHeroes(ctx context.Context) ([]Hero, error) {
+	rows, err := q.db.Query(ctx, listHeroes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Hero{}
+	for rows.Next() {
+		var i Hero
+		if err := rows.Scan(
+			&i.ID,
+			&i.PlayerID,
+			&i.Name,
+			&i.CurrentNodeID,
+			&i.BaseSpeed,
+			&i.Attack,
+			&i.Defense,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateHeroNode = `-- name: UpdateHeroNode :exec
 UPDATE heroes
 SET current_node_id = $2

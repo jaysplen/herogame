@@ -41,26 +41,7 @@ This is the shared work board for the project. Read [architecture.md](./architec
 
 ## Backlog
 
-### [BETA-002] Redis client + arrivals ZSET + tick engine — **READY TO DELEGATE**
-- Owner: Agent Beta
-- Depends on: ALPHA-003, BETA-001
-- Acceptance:
-  - `internal/tick/engine.go` runs a 1 Hz `time.Ticker` in a goroutine with panic recovery + restart.
-  - Each tick performs **arrivals sweep, economy sweep, upkeep sweep** in that order (per [architecture.md §6](./architecture.md#6-tick-engine-design)).
-  - On boot, the engine **rehydrates** Redis from `SELECT id, arrive_at FROM movement_orders WHERE status='in_flight'`.
-  - Adding an arrival uses `ZADD arrivals:zset {arrive_at_unix} {movement_order_id}`; sweeping uses `ZRANGEBYSCORE arrivals:zset 0 now LIMIT 0 100` and `ZREM`.
-  - Arrival resolution runs in a Postgres tx, guarded by `WHERE status = 'in_flight'` so double-resolution is a no-op.
-  - Unit test simulates a queued arrival and confirms a single resolution event.
-- Files to touch:
-  - `backend/internal/redisx/client.go`
-  - `backend/internal/tick/engine.go`
-  - `backend/internal/tick/arrivals.go`
-  - `backend/internal/tick/economy.go`
-  - `backend/internal/tick/upkeep.go`
-  - `backend/internal/tick/engine_test.go`
-- Doc refs: [architecture.md §5](./architecture.md#5-data-flow-move-command), [architecture.md §6](./architecture.md#6-tick-engine-design), [game_rules.md §5](./game_rules.md#5-anti-snowball-b-upkeep-gold-cost)
-
-### [BETA-003] Move + Buy command handlers + broadcast
+### [BETA-003] Move + Buy command handlers + broadcast — **READY TO DELEGATE**
 - Owner: Agent Beta
 - Depends on: BETA-002, ALPHA-004
 - Acceptance:
@@ -169,6 +150,12 @@ _(empty — agents move tasks here when acceptance criteria pass)_
 ---
 
 ## Done
+
+### [BETA-002] Redis client + arrivals ZSET + tick engine
+- Owner: Agent Beta
+- Depends on: ALPHA-003, BETA-001
+- Acceptance: 1 Hz tick, arrivals/economy/upkeep sweeps, Redis rehydrate, idempotent arrival tx, integration test.
+- Files: `backend/internal/redisx/`, `backend/internal/tick/`
 
 ### [BETA-001] WebSocket gateway: envelope + connection lifecycle
 - Owner: Agent Beta

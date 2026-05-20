@@ -53,7 +53,11 @@ Requires `DATABASE_URL`. Connect to `ws://localhost:8080/ws`, send `hello` withi
 {"type":"hello","payload":{"playerId":1},"seq":1,"serverTime":0}
 ```
 
+## Tick engine (BETA-002)
+
+Requires `DATABASE_URL` and `REDIS_URL`. Starts automatically with the server; rehydrates in-flight movements into Redis on boot.
+
 ## Next tasks
 
-- **BETA-002** — Redis arrivals ZSET + tick engine
-- **BETA-003** — move/buy handlers
+- **BETA-003** — move/buy handlers + broadcast
+- **BETA-004** — combat resolution on creep arrival

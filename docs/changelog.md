@@ -29,6 +29,7 @@ Example:
 
 ## 2026-05-20
 
+- BETA-002 — Tick engine (1 Hz): Redis `arrivals:zset`, rehydrate on boot, arrival resolution + `move.arrived` broadcast, economy/upkeep sweeps; `GetMovementOrder`, `ListHeroes` queries.
 - BETA-001 — WebSocket gateway: `GET /ws`, JSON envelopes, 5s hello timeout, `hello.ack` bootstrap from Postgres, hub for broadcast, gateway tests.
 - BETA-001 — sqlc: `GetHeroByPlayer`, `ListEdges` queries.
 - ALPHA-004 — Pure domain packages: `world` (travel/upkeep slowdown), `hero` (army aggregate), `economy` (upkeep + constants); tests match game_rules.md tables.

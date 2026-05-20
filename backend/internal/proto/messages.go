@@ -7,6 +7,12 @@ const (
 	TypeUnitBuy     = "unit.buy"
 )
 
+// MoveArrivedPayload is emitted when a hero finishes travel.
+type MoveArrivedPayload struct {
+	HeroID int64 `json:"heroId"`
+	NodeID int64 `json:"nodeId"`
+}
+
 // Server → client message types.
 const (
 	TypeHelloAck       = "hello.ack"
