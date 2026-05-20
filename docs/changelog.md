@@ -1,0 +1,40 @@
+# Changelog
+
+> **Status:** Append-only project log.
+> **Companion to:** [architecture.md](./architecture.md), [game_rules.md](./game_rules.md), [agent_tasks.md](./agent_tasks.md).
+
+This file is the audit trail of every meaningful change to the project — code, schema, rules, scope. It is the first place a returning agent (human or AI) looks to catch up.
+
+---
+
+## How to Update
+
+- **When** to append: after closing any task in [agent_tasks.md](./agent_tasks.md), after a doc change that affects scope/rules/schema, or after a balance-tuning constant change.
+- **Format:** group entries under a date header `## YYYY-MM-DD` (UTC). Newest dates at the top. Within a date, newest entries at the top.
+- **Per entry:** a single bullet starting with the task ID or `[doc]` tag, followed by a one-line summary. If non-trivial, add a sub-bullet citing the section anchor in the relevant doc.
+- **Do not delete** entries. To correct a past entry, append a new bullet noting the correction.
+
+Example:
+
+```
+## 2026-05-22
+
+- ALPHA-002 — Goose migrations + map seed merged. All 10 PoC tables created; 6 nodes + 7 edges seeded.
+  - Schema details: architecture.md §8.
+- [doc] Adjusted Pikeman upkeep from 1.0 to 2.0 g/hr to make anti-snowball curve bite at ~1800-unit cap.
+  - See game_rules.md §5.2 + §10.
+```
+
+---
+
+## 2026-05-20
+
+- [chore] Initialized git repo + root plumbing (`.gitignore`, `README.md`, `pnpm-workspace.yaml`, `backend/README.md`, `frontend/README.md`).
+- LEAD foundation pass — Project Lead Agent established the `/docs` knowledge base.
+  - Created [architecture.md](./architecture.md): PoC scope, locked stack (Go + Postgres 16 + Redis 7 + WebSockets + React/Konva), system + sequence diagrams, full WS protocol contract, complete schema for all 10 PoC tables, tick engine design, 6-node seeded map, future-expansion hooks.
+  - Created [game_rules.md](./game_rules.md): movement formula with worked examples, anti-snowball upkeep slowdown table (army_size 0–5000), anti-snowball upkeep gold cost with break-even economy analysis, desertion rules, deterministic combat pseudo-code with worked example, full tuning-knob catalog (§10).
+  - Created [agent_tasks.md](./agent_tasks.md): Kanban-style board with 12 PoC tasks (ALPHA-001..004, BETA-001..004, GAMMA-001..003, LEAD-001) + 2 OPS placeholders. Tasks ALPHA-001, ALPHA-002, ALPHA-003 flagged **READY TO DELEGATE**.
+- [decision] Committed to Go backend over Node.js/TypeScript — rationale: goroutine concurrency for the 1 Hz tick loop and per-connection WS handlers.
+  - See architecture.md §2.
+- [decision] Committed to React + `react-konva` (Canvas) over SVG — rationale: smooth interpolation of in-flight hero positions at 30 fps without DOM thrash.
+  - See architecture.md §2.2.
