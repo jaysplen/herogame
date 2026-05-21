@@ -147,4 +147,5 @@ Highlights:
 
 - **Port in use:** set `POSTGRES_PORT` / `REDIS_PORT` in `.env` and update `DATABASE_URL` / `REDIS_URL`.
 - **Migrations skipped:** expected until ALPHA-002 adds `backend/migrations/`.
-- **Reset database:** `make down-v && make dev`
+- **Reset game state (keep DB, fresh heroes/creeps/resources):** `make reset` then restart `make server`
+- **Full database wipe:** `make down-v && make dev`

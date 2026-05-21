@@ -1,6 +1,6 @@
 # herogame dev tooling — see docs/architecture.md §12
 
-.PHONY: dev down logs ps migrate migrate-status config server frontend
+.PHONY: dev down down-v logs ps migrate migrate-status config server frontend reset
 
 # Load .env when present (copy from .env.example)
 ifneq (,$(wildcard .env))
@@ -37,6 +37,10 @@ down:
 ## down-v: stop containers and remove named volumes (destructive)
 down-v:
 	docker compose down -v
+
+## reset: clear heroes/armies/movement/combat and Redis; restore starting resources and creeps
+reset:
+	bash scripts/reset-game.sh
 
 logs:
 	docker compose logs -f
