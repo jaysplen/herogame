@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820" width="1200" height="820"
+     shape-rendering="geometricPrecision">
+  <title>Realm of Ardent Flame — watercolor cartography</title>
+
+  <defs>
+    <!-- Watercolor "wet edge" displacement -->
+    <filter id="wc" x="-8%" y="-8%" width="116%" height="116%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="14"/>
+    </filter>
+
+    <!-- Softer watercolor edge for inner washes -->
+    <filter id="wc2" x="-8%" y="-8%" width="116%" height="116%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.014" numOctaves="2" seed="11"/>
+      <feDisplacementMap in="SourceGraphic" scale="22"/>
+    </filter>
+
+    <!-- Paper grain (subtle warm noise overlay) -->
+    <filter id="paper" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.95" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix values="0 0 0 0 0.60
+                              0 0 0 0 0.48
+                              0 0 0 0 0.28
+                              0 0 0 0.16 0"/>
+    </filter>
+
+    <!-- Soft drop-shadow for icons -->
+    <filter id="softshadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.2"/>
+      <feOffset dx="0" dy="1.5"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.55"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
+      <stop offset="60%" stop-color="#000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#3a2a14" stop-opacity="0.35"/>
+    </radialGradient>
+
+    <!-- Tree silhouette -->
+    <symbol id="tree" viewBox="-10 -16 20 20">
+      <ellipse cx="0" cy="-6" rx="8" ry="9" fill="#5a7340" opacity="0.85"/>
+      <ellipse cx="-3" cy="-9" rx="5" ry="6" fill="#7a9658" opacity="0.85"/>
+      <rect x="-1.2" y="-2" width="2.4" height="5" fill="#4a3220" opacity="0.85"/>
+    </symbol>
+    <!-- Pine tree -->
+    <symbol id="pine" viewBox="-8 -18 16 22">
+      <path d="M 0 -16 L 7 -2 L -7 -2 Z" fill="#3e5c34" opacity="0.9"/>
+      <path d="M 0 -10 L 5 2 L -5 2 Z" fill="#4d6f3f" opacity="0.9"/>
+      <rect x="-1" y="2" width="2" height="3" fill="#3a2814"/>
+    </symbol>
+    <!-- Mountain peak -->
+    <symbol id="mtn" viewBox="-16 -16 32 18">
+      <path d="M -14 0 L -4 -14 L 2 -7 L 8 -12 L 14 0 Z" fill="#9aa1a8" opacity="0.95"/>
+      <path d="M -4 -14 L -1 -10 L -7 -6 Z" fill="#fdfdfd" opacity="0.85"/>
+      <path d="M 8 -12 L 10 -9 L 5 -6 Z" fill="#fdfdfd" opacity="0.8"/>
+      <path d="M -14 0 L -4 -14 L -1 -10 L -7 -6 L -3 -2 Z" fill="#6f7680" opacity="0.5"/>
+    </symbol>
+    <!-- Tower ruin -->
+    <symbol id="ruin" viewBox="-10 -14 20 16">
+      <path d="M -7 0 L -7 -10 L -4 -12 L -4 -7 L -1 -10 L -1 -3 L 4 -3 L 4 -11 L 7 -10 L 7 0 Z" fill="#7a6e5c" opacity="0.9"/>
+      <path d="M -7 0 L 7 0 L 7 -2 L -7 -2 Z" fill="#3a2e1c" opacity="0.7"/>
+    </symbol>
+    <!-- Wheat stalk -->
+    <symbol id="wheat" viewBox="-3 -10 6 12">
+      <line x1="0" y1="2" x2="0" y2="-9" stroke="#a8842c" stroke-width="0.6"/>
+      <ellipse cx="0" cy="-8" rx="1.4" ry="2.4" fill="#d9b148"/>
+    </symbol>
+    <!-- Reed -->
+    <symbol id="reed" viewBox="-4 -8 8 10">
+      <path d="M -3 2 Q -1 -2 0 -7" stroke="#6c7a5a" stroke-width="0.8" fill="none"/>
+      <path d="M 3 2 Q 1 -2 0 -7" stroke="#6c7a5a" stroke-width="0.8" fill="none"/>
+      <path d="M 0 2 L 0 -6" stroke="#6c7a5a" stroke-width="0.8"/>
+    </symbol>
+    <!-- Skull marker for creep zones -->
+    <symbol id="skull" viewBox="-6 -7 12 12">
+      <ellipse cx="0" cy="-1" rx="4.2" ry="4" fill="#e8e0c8" opacity="0.85"/>
+      <rect x="-3" y="2.5" width="6" height="1.6" fill="#e8e0c8" opacity="0.85"/>
+      <circle cx="-1.4" cy="-1" r="1" fill="#2a1a08"/>
+      <circle cx="1.4" cy="-1" r="1" fill="#2a1a08"/>
+      <path d="M -0.8 1.5 L 0 0.5 L 0.8 1.5 Z" fill="#2a1a08"/>
+    </symbol>
+  </defs>
+
+  <!-- =================== Sea / paper base =================== -->
+  <rect width="1200" height="820" fill="#e6dcb8"/>
+  <rect width="1200" height="820" fill="#b4c4d4" opacity="0.55"/>
+
+  <!-- Soft sea wash gradient -->
+  <rect width="1200" height="820" fill="#7fa4be" opacity="0.18"/>
+
+  <!-- =================== Main landmass =================== -->
+  <g filter="url(#wc)">
+    <path d="
+      M 60 360
+      C 80 220, 220 130, 360 120
+      C 520 110, 620 160, 800 130
+      C 960 100, 1110 150, 1150 280
+      C 1170 380, 1140 480, 1120 580
+      C 1100 690, 1000 760, 860 770
+      C 700 780, 540 740, 420 760
+      C 280 780, 140 760, 90 660
+      C 40 560, 50 460, 60 360 Z"
+      fill="#e9d8a4"/>
+  </g>
+
+  <!-- Subtler inner land wash (warm) -->
+  <g filter="url(#wc2)" opacity="0.55">
+    <path d="
+      M 140 360
+      C 180 220, 320 180, 480 200
+      C 640 220, 760 180, 900 200
+      C 1020 220, 1100 280, 1100 420
+      C 1100 540, 1020 660, 880 700
+      C 700 740, 500 700, 360 700
+      C 220 700, 140 600, 140 360 Z"
+      fill="#dec587"/>
+  </g>
+
+  <!-- =================== Northern forest band =================== -->
+  <g filter="url(#wc2)" opacity="0.78">
+    <path d="
+      M 180 140
+      C 280 120, 380 130, 480 170
+      C 560 200, 620 180, 700 170
+      C 640 250, 540 260, 460 250
+      C 360 240, 260 250, 180 220 Z"
+      fill="#7a9962"/>
+  </g>
+  <g filter="url(#wc2)" opacity="0.55">
+    <path d="
+      M 190 160
+      C 290 150, 390 165, 470 195
+      C 540 215, 600 195, 660 200
+      C 600 240, 500 245, 420 235
+      C 340 225, 260 235, 200 215 Z"
+      fill="#5a7a4a"/>
+  </g>
+
+  <!-- =================== Central mountain ridge =================== -->
+  <g filter="url(#wc2)" opacity="0.7">
+    <path d="
+      M 620 220
+      C 700 200, 800 210, 900 200
+      C 960 210, 990 240, 970 280
+      C 950 320, 880 300, 820 290
+      C 760 280, 700 290, 640 280 Z"
+      fill="#a8a098"/>
+  </g>
+
+  <!-- =================== River (winding S band) =================== -->
+  <g opacity="0.8">
+    <path d="
+      M 50 580
+      C 140 540, 230 580, 320 560
+      C 420 540, 500 600, 580 580
+      C 660 560, 720 600, 800 590
+      C 880 580, 960 620, 1050 600
+      C 1110 590, 1160 600, 1180 620"
+      stroke="#7faabf" stroke-width="22" fill="none" stroke-linecap="round" filter="url(#wc2)"/>
+    <path d="
+      M 50 580
+      C 140 540, 230 580, 320 560
+      C 420 540, 500 600, 580 580
+      C 660 560, 720 600, 800 590
+      C 880 580, 960 620, 1050 600
+      C 1110 590, 1160 600, 1180 620"
+      stroke="#5a8eb0" stroke-width="10" fill="none" stroke-linecap="round" opacity="0.55"/>
+    <path d="
+      M 50 580
+      C 140 540, 230 580, 320 560
+      C 420 540, 500 600, 580 580
+      C 660 560, 720 600, 800 590
+      C 880 580, 960 620, 1050 600
+      C 1110 590, 1160 600, 1180 620"
+      stroke="#bcd6e2" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+  </g>
+
+  <!-- =================== Marshland (around node 16) =================== -->
+  <g filter="url(#wc2)" opacity="0.55">
+    <ellipse cx="760" cy="460" rx="110" ry="55" fill="#8a8aab"/>
+  </g>
+  <g opacity="0.7">
+    <use href="#reed" x="710" y="460"/>
+    <use href="#reed" x="740" y="475"/>
+    <use href="#reed" x="775" y="455"/>
+    <use href="#reed" x="800" y="470"/>
+    <use href="#reed" x="730" y="450"/>
+  </g>
+
+  <!-- =================== Golden field (around node 12) =================== -->
+  <g filter="url(#wc2)" opacity="0.7">
+    <ellipse cx="680" cy="600" rx="90" ry="42" fill="#d9b148"/>
+  </g>
+  <g opacity="0.85">
+    <use href="#wheat" x="640" y="600"/>
+    <use href="#wheat" x="660" y="590"/>
+    <use href="#wheat" x="680" y="600"/>
+    <use href="#wheat" x="700" y="592"/>
+    <use href="#wheat" x="720" y="605"/>
+    <use href="#wheat" x="650" y="615"/>
+    <use href="#wheat" x="690" y="615"/>
+    <use href="#wheat" x="710" y="618"/>
+  </g>
+
+  <!-- =================== Forest stamps (north) =================== -->
+  <g filter="url(#softshadow)">
+    <use href="#tree" x="230" y="180"/>
+    <use href="#tree" x="265" y="200"/>
+    <use href="#pine" x="295" y="175"/>
+    <use href="#tree" x="320" y="195"/>
+    <use href="#pine" x="350" y="180"/>
+    <use href="#pine" x="385" y="195"/>
+    <use href="#tree" x="415" y="180"/>
+    <use href="#tree" x="450" y="200"/>
+    <use href="#pine" x="240" y="220"/>
+    <use href="#tree" x="280" y="240"/>
+    <use href="#pine" x="320" y="225"/>
+    <use href="#tree" x="360" y="240"/>
+    <use href="#pine" x="400" y="225"/>
+    <use href="#tree" x="195" y="160"/>
+    <use href="#tree" x="225" y="155"/>
+    <use href="#pine" x="380" y="155"/>
+    <use href="#tree" x="430" y="160"/>
+  </g>
+
+  <!-- =================== Mountain stamps (central ridge) =================== -->
+  <g filter="url(#softshadow)">
+    <use href="#mtn" x="640" y="280"/>
+    <use href="#mtn" x="690" y="270"/>
+    <use href="#mtn" x="745" y="285"/>
+    <use href="#mtn" x="800" y="260"/>
+    <use href="#mtn" x="855" y="275"/>
+    <use href="#mtn" x="905" y="265"/>
+    <use href="#mtn" x="960" y="285"/>
+  </g>
+
+  <!-- =================== Scattered minor trees (south band) =================== -->
+  <g filter="url(#softshadow)" opacity="0.9">
+    <use href="#tree" x="500" y="635"/>
+    <use href="#tree" x="540" y="650"/>
+    <use href="#pine" x="500" y="615"/>
+    <use href="#pine" x="555" y="625"/>
+    <use href="#tree" x="475" y="640"/>
+  </g>
+
+  <!-- =================== Ruined tower hint near node 9 =================== -->
+  <g filter="url(#softshadow)" opacity="0.85">
+    <use href="#ruin" x="556" y="296"/>
+  </g>
+
+  <!-- =================== Bandit / wolf creep zone markers =================== -->
+  <g filter="url(#softshadow)" opacity="0.85">
+    <use href="#skull" x="500" y="430"/>
+    <use href="#skull" x="660" y="395"/>
+  </g>
+
+  <!-- =================== Coastline outline (hand-drawn dark line) =================== -->
+  <g filter="url(#wc)">
+    <path d="
+      M 60 360
+      C 80 220, 220 130, 360 120
+      C 520 110, 620 160, 800 130
+      C 960 100, 1110 150, 1150 280
+      C 1170 380, 1140 480, 1120 580
+      C 1100 690, 1000 760, 860 770
+      C 700 780, 540 740, 420 760
+      C 280 780, 140 760, 90 660
+      C 40 560, 50 460, 60 360 Z"
+      fill="none" stroke="#4a3a1e" stroke-width="2.2" opacity="0.65"/>
+  </g>
+
+  <!-- =================== Paper grain overlay =================== -->
+  <rect width="1200" height="820" filter="url(#paper)" opacity="0.45"/>
+
+  <!-- =================== Vignette =================== -->
+  <rect width="1200" height="820" fill="url(#vignette)"/>
+
+  <!-- =================== Sea wave hatching =================== -->
+  <g stroke="#5a8eb0" stroke-width="0.8" fill="none" opacity="0.35">
+    <path d="M 30 80 q 12 -4 24 0 t 24 0"/>
+    <path d="M 30 110 q 12 -4 24 0 t 24 0"/>
+    <path d="M 1100 700 q 12 -4 24 0 t 24 0"/>
+    <path d="M 1100 730 q 12 -4 24 0 t 24 0"/>
+    <path d="M 1100 760 q 12 -4 24 0 t 24 0"/>
+    <path d="M 30 740 q 12 -4 24 0 t 24 0"/>
+    <path d="M 30 770 q 12 -4 24 0 t 24 0"/>
+    <path d="M 1130 90 q 12 -4 24 0 t 24 0"/>
+    <path d="M 1130 120 q 12 -4 24 0 t 24 0"/>
+  </g>
+
+  <!-- =================== Compass rose (top-right) =================== -->
+  <g transform="translate(1090, 90)" filter="url(#softshadow)">
+    <!-- Outer ring -->
+    <circle r="42" fill="#f3e8c8" opacity="0.92" stroke="#5a3f10" stroke-width="1.2"/>
+    <circle r="36" fill="none" stroke="#5a3f10" stroke-width="0.6" stroke-dasharray="2,3"/>
+    <!-- 8-point star -->
+    <path d="M 0 -34 L 6 -6 L 34 0 L 6 6 L 0 34 L -6 6 L -34 0 L -6 -6 Z"
+          fill="#d4a548" stroke="#5a3f10" stroke-width="0.8"/>
+    <!-- Inner darker counter-points -->
+    <path d="M 0 -22 L 4 0 L 22 0 L 4 0 L 0 22 L -4 0 L -22 0 L -4 0 Z"
+          fill="#8a5d18" opacity="0.9"/>
+    <!-- N pointer accent -->
+    <path d="M 0 -34 L 4 -10 L -4 -10 Z" fill="#8e1d1d"/>
+    <!-- Labels -->
+    <text x="0" y="-46" text-anchor="middle" font-family="Cinzel, serif"
+          font-weight="700" font-size="13" fill="#3a2410">N</text>
+    <text x="50" y="5" text-anchor="middle" font-family="Cinzel, serif"
+          font-weight="700" font-size="12" fill="#3a2410">E</text>
+    <text x="0" y="56" text-anchor="middle" font-family="Cinzel, serif"
+          font-weight="700" font-size="12" fill="#3a2410">S</text>
+    <text x="-50" y="5" text-anchor="middle" font-family="Cinzel, serif"
+          font-weight="700" font-size="12" fill="#3a2410">W</text>
+    <!-- Center pin -->
+    <circle r="3" fill="#3a2410"/>
+  </g>
+
+  <!-- =================== Title cartouche (top-left) =================== -->
+  <g transform="translate(60, 60)" filter="url(#softshadow)">
+    <path d="M 0 0 L 280 0 Q 296 0 296 16 L 296 56 Q 296 72 280 72 L 0 72 Q -16 72 -16 56 L -16 16 Q -16 0 0 0 Z"
+          fill="#f3e8c8" opacity="0.92" stroke="#5a3f10" stroke-width="1.2"/>
+    <path d="M 4 4 L 276 4 L 276 68 L 4 68 Z"
+          fill="none" stroke="#8a5d18" stroke-width="0.5" stroke-dasharray="3,3"/>
+    <text x="140" y="32" text-anchor="middle" font-family="Cinzel, serif"
+          font-weight="800" font-size="20" letter-spacing="3" fill="#3a2410">REALM OF</text>
+    <text x="140" y="56" text-anchor="middle" font-family="MedievalSharp, Cinzel, serif"
+          font-size="22" letter-spacing="2" fill="#8e1d1d">Ardent Flame</text>
+    <!-- Corner flourishes -->
+    <circle cx="-4" cy="36" r="3.5" fill="#d4a548" stroke="#5a3f10" stroke-width="0.6"/>
+    <circle cx="284" cy="36" r="3.5" fill="#d4a548" stroke="#5a3f10" stroke-width="0.6"/>
+  </g>
+
+  <!-- =================== Hand-drawn frame border =================== -->
+  <g filter="url(#wc)">
+    <rect x="14" y="14" width="1172" height="792" fill="none" stroke="#3a2410" stroke-width="3" opacity="0.55"/>
+  </g>
+  <g>
+    <rect x="22" y="22" width="1156" height="776" fill="none" stroke="#8a5d18" stroke-width="0.6" stroke-dasharray="6,4" opacity="0.55"/>
+  </g>
+</svg>
