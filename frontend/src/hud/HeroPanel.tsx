@@ -33,7 +33,7 @@ export function HeroPanel() {
       <h2>Hero</h2>
       {respawnSecondsLeft > 0 ? (
         <span className="badge badge-respawn">
-          Respawning {respawnSecondsLeft}s
+          ☠ Resurrecting {respawnSecondsLeft}s
         </span>
       ) : null}
       {spawnMessage ? <p className="spawn-msg">{spawnMessage}</p> : null}
@@ -47,8 +47,8 @@ export function HeroPanel() {
           <dd>{hero.upkeepGoldPerHour.toFixed(1)} / hr</dd>
         </div>
         <div>
-          <dt>Node</dt>
-          <dd>{hero.currentNodeId}</dd>
+          <dt>Locus</dt>
+          <dd>#{hero.currentNodeId}</dd>
         </div>
       </dl>
     </section>

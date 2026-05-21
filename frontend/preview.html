@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Herogame — Theme Preview (static)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=MedievalSharp&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/index.css" />
+    <style>
+      .preview-map {
+        position: relative;
+        height: 520px;
+        background:
+          radial-gradient(ellipse at center, #1a2a1f 0%, #0e1612 60%, #060a08 100%);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .node {
+        position: absolute;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Cinzel", serif;
+        font-size: 22px;
+        font-weight: bold;
+        color: #f0e6c8;
+        text-shadow: 0 0 4px #000, 0 1px 0 #000;
+        transform: translate(-50%, -50%);
+        box-shadow:
+          0 0 14px rgba(243, 210, 122, 0.4),
+          inset 0 -4px 8px rgba(0,0,0,0.4),
+          inset 4px 4px 6px rgba(255,255,255,0.18);
+        border: 2px solid #f3d27a;
+        cursor: pointer;
+      }
+      .node.castle { background: radial-gradient(circle at 30% 30%, #6a9dca, #1e3052); }
+      .node.wild   { background: radial-gradient(circle at 30% 30%, #5fa873, #1a3a26); border-color: #a4e2b8; }
+      .node.creep  { background: radial-gradient(circle at 30% 30%, #c25050, #3e0c0c); border-color: #f0a878; }
+      .node-label {
+        position: absolute;
+        top: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: "Cinzel", serif;
+        font-size: 12px;
+        white-space: nowrap;
+        color: #ede2c4;
+        text-shadow: 0 1px 2px #000;
+      }
+      .edge {
+        position: absolute;
+        height: 5px;
+        background:
+          linear-gradient(90deg,
+            transparent 0%,
+            #3a2c1a 5%,
+            #7a5e36 50%,
+            #3a2c1a 95%,
+            transparent 100%);
+        border-radius: 3px;
+        box-shadow: 0 0 8px rgba(0,0,0,0.6);
+        transform-origin: 0 50%;
+        z-index: -1;
+      }
+      .hero-token {
+        position: absolute;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 35%, #fff1b8 0%, #f3d27a 50%, #8a5d18 100%);
+        border: 2px solid #3a2810;
+        box-shadow: 0 0 18px #f3d27a, 0 0 0 6px rgba(243, 210, 122, 0.18);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #5a3f10;
+        font-size: 16px;
+        transform: translate(-50%, -50%);
+      }
+      .preview-note {
+        text-align: center;
+        margin: 1.5rem 0 0;
+        font-family: "MedievalSharp", serif;
+        color: #8a7a5a;
+        font-style: italic;
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <header class="app-banner">
+        <div class="app-banner-title">
+          <h1>Herogame</h1>
+          <span class="subtitle">— Realm of Ardent Flame —</span>
+        </div>
+        <p class="connection-status is-open">
+          <span class="connection-dot"></span>
+          <span>Aether link: <strong>connected</strong></span>
+        </p>
+      </header>
+
+      <div class="layout">
+        <aside class="hud">
+          <section class="hud-panel">
+            <h2>Treasury</h2>
+            <div class="hud-gold-row">
+              <svg class="coin-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <defs>
+                  <radialGradient id="coinGrad" cx="35%" cy="30%" r="75%">
+                    <stop offset="0%" stop-color="#fff1b8" />
+                    <stop offset="45%" stop-color="#f3d27a" />
+                    <stop offset="85%" stop-color="#b8862c" />
+                    <stop offset="100%" stop-color="#6b4a14" />
+                  </radialGradient>
+                </defs>
+                <circle cx="16" cy="16" r="13" fill="url(#coinGrad)" stroke="#3a2810" stroke-width="1.5" />
+                <circle cx="16" cy="16" r="9.5" fill="none" stroke="#8a5d18" stroke-width="0.8" />
+                <text x="16" y="21" text-anchor="middle" font-family="Cinzel, serif" font-weight="700" font-size="13" fill="#5a3f10">⚜</text>
+              </svg>
+              <p class="hud-gold-value">2,470</p>
+            </div>
+            <p class="hud-meta">+60 per minute</p>
+            <ul class="resource-mini">
+              <li data-kind="wood" data-icon="❦">128</li>
+              <li data-kind="stone" data-icon="◈">94</li>
+              <li data-kind="metal" data-icon="⚒">42</li>
+              <li data-kind="coal" data-icon="◆">66</li>
+              <li data-kind="gems" data-icon="✦">7</li>
+            </ul>
+          </section>
+
+          <section class="hud-panel">
+            <h2>Hero</h2>
+            <dl class="hero-stats">
+              <div><dt>Speed</dt><dd>5.0</dd></div>
+              <div><dt>Upkeep</dt><dd>12.0 / hr</dd></div>
+              <div><dt>Locus</dt><dd>#3</dd></div>
+            </dl>
+          </section>
+
+          <section class="hud-panel">
+            <h2>Garrison</h2>
+            <ul class="army-list">
+              <li class="army-row">
+                <span class="army-name">Pikeman × 24</span>
+                <span class="army-actions">
+                  <button type="button">+1</button>
+                  <button type="button">+10</button>
+                </span>
+              </li>
+              <li class="army-row">
+                <span class="army-name">Crossbowman × 8</span>
+                <span class="army-actions">
+                  <button type="button">+1</button>
+                  <button type="button" disabled>+10</button>
+                </span>
+              </li>
+            </ul>
+            <h3 class="hud-subhead">✦ Construct</h3>
+            <div class="build-menu">
+              <button type="button">Bulwark (+1)</button>
+              <button type="button">Barracks Tier</button>
+              <button type="button">Academy Tier</button>
+            </div>
+            <p class="hud-meta">Wood 128 · Stone 94</p>
+          </section>
+        </aside>
+
+        <div class="layout-main">
+          <div class="map-wrap">
+            <div class="toast">Hero is moving — march to the ruins!</div>
+            <div class="objective-banner">Eliminate enemy hero 5x · Progress 2/5</div>
+            <div class="preview-map" id="previewMap"></div>
+          </div>
+          <p class="preview-note">⚔ Static theme preview — no live server connection ⚔</p>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      // Tiny demo to render a HoMM-ish node graph in plain DOM
+      // (the real app uses react-konva).
+      const map = document.getElementById('previewMap');
+      const nodes = [
+        { id: 1, x: 140, y: 380, kind: 'castle', name: 'Whitehaven', sym: '♜' },
+        { id: 2, x: 320, y: 280, kind: 'wild',   name: 'Crossroads', sym: '❦' },
+        { id: 3, x: 540, y: 360, kind: 'wild',   name: 'Pine Ford', sym: '❦' },
+        { id: 4, x: 720, y: 240, kind: 'creep',  name: 'Bandit Camp', sym: '☠' },
+        { id: 5, x: 880, y: 380, kind: 'castle', name: 'Ashfall Keep', sym: '♜' },
+        { id: 6, x: 460, y: 140, kind: 'wild',   name: 'Sunlit Glade', sym: '❦' },
+        { id: 7, x: 240, y: 120, kind: 'creep',  name: 'Wolf Den', sym: '☠' },
+      ];
+      const edges = [
+        [1,2],[2,3],[3,4],[4,5],[2,6],[6,7],[7,1],[3,6]
+      ];
+      const byId = Object.fromEntries(nodes.map(n=>[n.id,n]));
+      for (const [a,b] of edges) {
+        const A=byId[a], B=byId[b];
+        const dx=B.x-A.x, dy=B.y-A.y;
+        const len=Math.hypot(dx,dy);
+        const ang=Math.atan2(dy,dx)*180/Math.PI;
+        const e=document.createElement('div');
+        e.className='edge';
+        e.style.left=A.x+'px';
+        e.style.top=(A.y-2.5)+'px';
+        e.style.width=len+'px';
+        e.style.transform=`rotate(${ang}deg)`;
+        map.appendChild(e);
+      }
+      for (const n of nodes) {
+        const d=document.createElement('div');
+        d.className=`node ${n.kind}`;
+        d.style.left=n.x+'px';
+        d.style.top=n.y+'px';
+        d.innerHTML = `${n.sym}<span class="node-label">${n.name}</span>`;
+        map.appendChild(d);
+      }
+      // Hero token at node 3
+      const hero = document.createElement('div');
+      hero.className='hero-token';
+      hero.style.left=(byId[3].x)+'px';
+      hero.style.top=(byId[3].y - 36)+'px';
+      hero.textContent='★';
+      map.appendChild(hero);
+    </script>
+  </body>
+</html>

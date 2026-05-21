@@ -89,7 +89,7 @@ export function ArmyPanel() {
 
   return (
     <section className="hud-panel">
-      <h2>Army</h2>
+      <h2>Garrison</h2>
       <ul className="army-list">
         {stacks.map((stack) => (
           <UnitRow
@@ -100,12 +100,12 @@ export function ArmyPanel() {
           />
         ))}
         {stacks.length === 0 ? (
-          <li className="muted army-empty">No units in army</li>
+          <li className="muted army-empty">No troops in retinue</li>
         ) : null}
       </ul>
       {recruitOnly.length > 0 ? (
         <>
-          <h3 className="hud-subhead">Recruit at castle</h3>
+          <h3 className="hud-subhead">⚔ Recruit at Keep</h3>
           <ul className="army-list">
             {recruitOnly.map((unit) => (
               <UnitRow
@@ -118,21 +118,21 @@ export function ArmyPanel() {
           </ul>
         </>
       ) : null}
-      <h3 className="hud-subhead">Castle build</h3>
+      <h3 className="hud-subhead">✦ Construct</h3>
       <div className="build-menu">
         <button type="button" onClick={() => build("defense")}>
-          Defense (+1)
+          Bulwark (+1)
         </button>
         <button type="button" onClick={() => build("barracks")}>
-          Barracks tier
+          Barracks Tier
         </button>
         <button type="button" onClick={() => build("academy")}>
-          Academy tier
+          Academy Tier
         </button>
       </div>
       {resources ? (
         <p className="hud-meta">
-          Build res: W {Math.floor(resources.wood)} · S {Math.floor(resources.stone)}
+          Wood {Math.floor(resources.wood)} · Stone {Math.floor(resources.stone)}
         </p>
       ) : null}
     </section>

@@ -19,20 +19,25 @@ export function CombatModal({ combat, open, onClose }: CombatModalProps) {
       <div className="modal">
         <header className="modal-header">
           <h2>
-            Combat —{" "}
+            Battle —{" "}
             <span className={combat.outcome === "win" ? "win" : "loss"}>
-              {combat.outcome}
+              {combat.outcome === "win" ? "Victory" : "Defeat"}
             </span>
           </h2>
-          <button type="button" className="modal-close" onClick={onClose}>
+          <button
+            type="button"
+            className="modal-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
             ×
           </button>
         </header>
         <p className="modal-summary">
-          Casualties: {combat.casualties}
-          {combat.goldReward > 0 ? ` · Gold +${combat.goldReward}` : null}
+          Fallen: {combat.casualties}
+          {combat.goldReward > 0 ? ` · Spoils +${combat.goldReward} gold` : null}
           {combat.convertedUnits > 0
-            ? ` · Converted +${combat.convertedUnits}`
+            ? ` · Sworn +${combat.convertedUnits}`
             : null}
         </p>
         <div className="modal-log">
