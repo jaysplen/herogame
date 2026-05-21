@@ -9,10 +9,10 @@ import { HeroToken } from "./HeroToken";
 import { MapBackground } from "./MapBackground";
 import { Node } from "./Node";
 import {
-  lerp,
   moveProgress,
   neighborIds,
   nodeMap,
+  travelPos,
   uniqueLogicalEdges,
 } from "./geometry";
 
@@ -33,7 +33,8 @@ function creepPosition(
     const to = nodesById.get(creep.toNodeId);
     if (from && to) {
       const t = moveProgress(nowMs, creep.departAt, creep.arriveAt);
-      return { x: lerp(from.x, to.x, t), y: lerp(from.y, to.y, t) };
+      // Follow the same road curve the Edge.tsx component draws.
+      return travelPos(from, to, t);
     }
   }
   const node = nodesById.get(creep.nodeId);
@@ -114,10 +115,8 @@ export function MapView() {
       const to = nodesById.get(inFlight.toNodeId);
       if (!from || !to) return null;
       const t = moveProgress(serverNow, inFlight.departAt, inFlight.arriveAt);
-      return {
-        x: lerp(from.x, to.x, t),
-        y: lerp(from.y, to.y, t),
-      };
+      // Hero follows the curved road, not the straight chord.
+      return travelPos(from, to, t);
     }
     const node = nodesById.get(hero.currentNodeId);
     return node ? { x: node.x, y: node.y } : null;

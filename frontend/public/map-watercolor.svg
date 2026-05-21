@@ -1,341 +1,717 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820" width="1200" height="820"
-     shape-rendering="geometricPrecision">
-  <title>Realm of Ardent Flame — watercolor cartography</title>
-
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820" width="1200" height="820" shape-rendering="geometricPrecision">
+  <title>Realm of Ardent Flame — watercolor cartography (v2)</title>
   <defs>
-    <!-- Watercolor "wet edge" displacement -->
     <filter id="wc" x="-8%" y="-8%" width="116%" height="116%">
       <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="2" seed="3"/>
       <feDisplacementMap in="SourceGraphic" scale="14"/>
     </filter>
-
-    <!-- Softer watercolor edge for inner washes -->
     <filter id="wc2" x="-8%" y="-8%" width="116%" height="116%">
       <feTurbulence type="fractalNoise" baseFrequency="0.014" numOctaves="2" seed="11"/>
       <feDisplacementMap in="SourceGraphic" scale="22"/>
     </filter>
-
-    <!-- Paper grain (subtle warm noise overlay) -->
+    <filter id="wc3" x="-8%" y="-8%" width="116%" height="116%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.040" numOctaves="2" seed="19"/>
+      <feDisplacementMap in="SourceGraphic" scale="8"/>
+    </filter>
     <filter id="paper" x="0%" y="0%" width="100%" height="100%">
       <feTurbulence type="fractalNoise" baseFrequency="0.95" numOctaves="2" stitchTiles="stitch"/>
-      <feColorMatrix values="0 0 0 0 0.60
-                              0 0 0 0 0.48
-                              0 0 0 0 0.28
-                              0 0 0 0.16 0"/>
+      <feColorMatrix values="0 0 0 0 0.60  0 0 0 0 0.48  0 0 0 0 0.28  0 0 0 0.16 0"/>
     </filter>
-
-    <!-- Soft drop-shadow for icons -->
     <filter id="softshadow" x="-25%" y="-25%" width="150%" height="150%">
       <feGaussianBlur in="SourceAlpha" stdDeviation="1.2"/>
       <feOffset dx="0" dy="1.5"/>
       <feComponentTransfer><feFuncA type="linear" slope="0.55"/></feComponentTransfer>
       <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
+    <filter id="deepshadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.5"/>
+      <feOffset dx="0" dy="3"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.45"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
 
-    <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
-      <stop offset="60%" stop-color="#000" stop-opacity="0"/>
-      <stop offset="100%" stop-color="#3a2a14" stop-opacity="0.35"/>
+    <radialGradient id="vignette" cx="50%" cy="50%" r="72%">
+      <stop offset="62%" stop-color="#000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#2a1c0a" stop-opacity="0.42"/>
     </radialGradient>
+    <radialGradient id="paperGrad" cx="50%" cy="50%" r="78%">
+      <stop offset="0%" stop-color="#f3e5b7"/>
+      <stop offset="60%" stop-color="#e6d5a0"/>
+      <stop offset="100%" stop-color="#c9b378"/>
+    </radialGradient>
+    <linearGradient id="seaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#7faabe" stop-opacity="0.40"/>
+      <stop offset="100%" stop-color="#3e7090" stop-opacity="0.50"/>
+    </linearGradient>
+    <radialGradient id="forestGrad" cx="50%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#88a466"/>
+      <stop offset="100%" stop-color="#4b6738"/>
+    </radialGradient>
+    <radialGradient id="grassGrad" cx="50%" cy="50%" r="65%">
+      <stop offset="0%" stop-color="#cdb979" stop-opacity="0.65"/>
+      <stop offset="100%" stop-color="#a4905a" stop-opacity="0.30"/>
+    </radialGradient>
+    <radialGradient id="snowGrad" cx="50%" cy="20%" r="80%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#cfd6dc" stop-opacity="0.10"/>
+    </radialGradient>
+    <linearGradient id="riverGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#9cc4d8"/>
+      <stop offset="50%" stop-color="#6c9cb8"/>
+      <stop offset="100%" stop-color="#4e85a4"/>
+    </linearGradient>
 
-    <!-- Tree silhouette -->
-    <symbol id="tree" viewBox="-10 -16 20 20">
-      <ellipse cx="0" cy="-6" rx="8" ry="9" fill="#5a7340" opacity="0.85"/>
-      <ellipse cx="-3" cy="-9" rx="5" ry="6" fill="#7a9658" opacity="0.85"/>
-      <rect x="-1.2" y="-2" width="2.4" height="5" fill="#4a3220" opacity="0.85"/>
+    <!-- Tree symbols -->
+    <symbol id="tree" viewBox="-10 -16 20 22" overflow="visible">
+      <ellipse cx="0" cy="-6" rx="8.5" ry="9.5" fill="#4d6b32" opacity="0.95"/>
+      <ellipse cx="-2" cy="-9" rx="5.4" ry="6.4" fill="#6d8d4a" opacity="0.92"/>
+      <ellipse cx="2.5" cy="-7" rx="4.2" ry="5" fill="#8aaa60" opacity="0.65"/>
+      <rect x="-1.3" y="-1.5" width="2.6" height="5.5" fill="#3a2412"/>
     </symbol>
-    <!-- Pine tree -->
-    <symbol id="pine" viewBox="-8 -18 16 22">
-      <path d="M 0 -16 L 7 -2 L -7 -2 Z" fill="#3e5c34" opacity="0.9"/>
-      <path d="M 0 -10 L 5 2 L -5 2 Z" fill="#4d6f3f" opacity="0.9"/>
-      <rect x="-1" y="2" width="2" height="3" fill="#3a2814"/>
+    <symbol id="pine" viewBox="-9 -20 18 24" overflow="visible">
+      <path d="M 0 -18 L 7 -3 L -7 -3 Z" fill="#2e4828" opacity="0.95"/>
+      <path d="M 0 -12 L 6.5 0 L -6.5 0 Z" fill="#3a5c34" opacity="0.95"/>
+      <path d="M 0 -6 L 5.5 3 L -5.5 3 Z" fill="#4e7242" opacity="0.92"/>
+      <rect x="-1" y="3" width="2" height="3" fill="#2a1808"/>
     </symbol>
-    <!-- Mountain peak -->
-    <symbol id="mtn" viewBox="-16 -16 32 18">
-      <path d="M -14 0 L -4 -14 L 2 -7 L 8 -12 L 14 0 Z" fill="#9aa1a8" opacity="0.95"/>
-      <path d="M -4 -14 L -1 -10 L -7 -6 Z" fill="#fdfdfd" opacity="0.85"/>
-      <path d="M 8 -12 L 10 -9 L 5 -6 Z" fill="#fdfdfd" opacity="0.8"/>
-      <path d="M -14 0 L -4 -14 L -1 -10 L -7 -6 L -3 -2 Z" fill="#6f7680" opacity="0.5"/>
+    <symbol id="treeBig" viewBox="-14 -22 28 28" overflow="visible">
+      <ellipse cx="0" cy="-9" rx="13" ry="13.5" fill="#3f5b30" opacity="0.95"/>
+      <ellipse cx="-3" cy="-13" rx="8" ry="9" fill="#5f7e44" opacity="0.92"/>
+      <ellipse cx="4" cy="-11" rx="6.5" ry="7" fill="#7c9c5a" opacity="0.55"/>
+      <rect x="-2" y="-1" width="4" height="7" fill="#321f0e"/>
     </symbol>
+
+    <!-- Mountains -->
+    <symbol id="mtn" viewBox="-22 -22 44 26" overflow="visible">
+      <path d="M -20 0 L -7 -20 L -1 -12 L 6 -22 L 12 -12 L 20 0 Z" fill="#92989f" opacity="0.95"/>
+      <path d="M -7 -20 L -3 -14 L -11 -8 Z" fill="#fefefe" opacity="0.92"/>
+      <path d="M 6 -22 L 10 -14 L 1 -10 Z" fill="#fefefe" opacity="0.92"/>
+      <path d="M -20 0 L -7 -20 L -3 -14 L -11 -8 L -5 -3 Z" fill="#5d646c" opacity="0.45"/>
+      <path d="M 6 -22 L 12 -12 L 20 0 L 10 -3 L 1 -10 L 10 -14 Z" fill="#6e7681" opacity="0.30"/>
+    </symbol>
+    <symbol id="mtnSmall" viewBox="-14 -16 28 18" overflow="visible">
+      <path d="M -12 0 L -2 -14 L 4 -8 L 12 0 Z" fill="#a4a8af" opacity="0.93"/>
+      <path d="M -2 -14 L 1 -8 L -6 -6 Z" fill="#fff" opacity="0.85"/>
+      <path d="M -12 0 L -2 -14 L 1 -8 L -6 -6 L -3 -2 Z" fill="#6b7279" opacity="0.45"/>
+    </symbol>
+    <symbol id="hill" viewBox="-18 -10 36 12" overflow="visible">
+      <path d="M -16 0 Q -8 -10 0 -8 Q 8 -10 16 0 Z" fill="#9e8a5e" opacity="0.55"/>
+      <path d="M -8 -3 Q 0 -7 8 -3" stroke="#5a4828" stroke-width="0.5" fill="none" opacity="0.45"/>
+    </symbol>
+
     <!-- Tower ruin -->
-    <symbol id="ruin" viewBox="-10 -14 20 16">
-      <path d="M -7 0 L -7 -10 L -4 -12 L -4 -7 L -1 -10 L -1 -3 L 4 -3 L 4 -11 L 7 -10 L 7 0 Z" fill="#7a6e5c" opacity="0.9"/>
+    <symbol id="ruin" viewBox="-10 -16 20 18" overflow="visible">
+      <path d="M -7 0 L -7 -10 L -4 -12 L -4 -7 L -1 -10 L -1 -3 L 4 -3 L 4 -11 L 7 -10 L 7 0 Z"
+            fill="#7a6e5c" opacity="0.92"/>
       <path d="M -7 0 L 7 0 L 7 -2 L -7 -2 Z" fill="#3a2e1c" opacity="0.7"/>
+      <rect x="-1" y="-7" width="1.4" height="2" fill="#1a1208"/>
     </symbol>
-    <!-- Wheat stalk -->
-    <symbol id="wheat" viewBox="-3 -10 6 12">
-      <line x1="0" y1="2" x2="0" y2="-9" stroke="#a8842c" stroke-width="0.6"/>
-      <ellipse cx="0" cy="-8" rx="1.4" ry="2.4" fill="#d9b148"/>
+
+    <!-- Wheat / reeds / waves -->
+    <symbol id="wheat" viewBox="-3 -12 6 14" overflow="visible">
+      <line x1="0" y1="2" x2="0" y2="-10" stroke="#a8842c" stroke-width="0.7"/>
+      <ellipse cx="0" cy="-9" rx="1.5" ry="2.6" fill="#d9b148"/>
+      <line x1="0" y1="-7" x2="2" y2="-5" stroke="#a8842c" stroke-width="0.4"/>
+      <line x1="0" y1="-7" x2="-2" y2="-5" stroke="#a8842c" stroke-width="0.4"/>
     </symbol>
-    <!-- Reed -->
-    <symbol id="reed" viewBox="-4 -8 8 10">
-      <path d="M -3 2 Q -1 -2 0 -7" stroke="#6c7a5a" stroke-width="0.8" fill="none"/>
-      <path d="M 3 2 Q 1 -2 0 -7" stroke="#6c7a5a" stroke-width="0.8" fill="none"/>
-      <path d="M 0 2 L 0 -6" stroke="#6c7a5a" stroke-width="0.8"/>
+    <symbol id="reed" viewBox="-5 -10 10 12" overflow="visible">
+      <path d="M -3 2 Q -1 -3 0 -8" stroke="#6c7a5a" stroke-width="0.9" fill="none"/>
+      <path d="M 3 2 Q 1 -3 0 -8" stroke="#6c7a5a" stroke-width="0.9" fill="none"/>
+      <path d="M 0 2 L 0 -7" stroke="#6c7a5a" stroke-width="0.9"/>
+      <ellipse cx="0" cy="-8" rx="0.7" ry="1.5" fill="#5e6a3e"/>
     </symbol>
-    <!-- Skull marker for creep zones -->
-    <symbol id="skull" viewBox="-6 -7 12 12">
-      <ellipse cx="0" cy="-1" rx="4.2" ry="4" fill="#e8e0c8" opacity="0.85"/>
-      <rect x="-3" y="2.5" width="6" height="1.6" fill="#e8e0c8" opacity="0.85"/>
-      <circle cx="-1.4" cy="-1" r="1" fill="#2a1a08"/>
-      <circle cx="1.4" cy="-1" r="1" fill="#2a1a08"/>
+    <symbol id="wave" viewBox="-12 -3 24 6" overflow="visible">
+      <path d="M -10 0 Q -5 -3 0 0 T 10 0" stroke="#5a8eb0" stroke-width="0.7" fill="none" opacity="0.6"/>
+    </symbol>
+
+    <!-- Skull marker -->
+    <symbol id="skull" viewBox="-6 -7 12 12" overflow="visible">
+      <ellipse cx="0" cy="-1" rx="4.4" ry="4.2" fill="#e8e0c8" opacity="0.85"/>
+      <rect x="-3" y="2.7" width="6" height="1.6" fill="#e8e0c8" opacity="0.85"/>
+      <circle cx="-1.4" cy="-1" r="1.1" fill="#2a1a08"/>
+      <circle cx="1.4" cy="-1" r="1.1" fill="#2a1a08"/>
       <path d="M -0.8 1.5 L 0 0.5 L 0.8 1.5 Z" fill="#2a1a08"/>
     </symbol>
+
+    <!-- Standing stones cluster -->
+    <symbol id="standingStones" viewBox="-12 -10 24 14" overflow="visible">
+      <rect x="-10" y="-7" width="3" height="9" fill="#7e7368" opacity="0.9"/>
+      <rect x="-3" y="-9" width="3" height="11" fill="#8a7e72" opacity="0.9"/>
+      <rect x="4" y="-8" width="3" height="10" fill="#7e7368" opacity="0.9"/>
+      <ellipse cx="-1" cy="3" rx="11" ry="1.4" fill="#3a2e1c" opacity="0.45"/>
+    </symbol>
+
+    <!-- Boat -->
+    <symbol id="boat" viewBox="-10 -10 20 14" overflow="visible">
+      <path d="M -8 0 L 8 0 L 6 3 L -6 3 Z" fill="#5a3a18" opacity="0.95"/>
+      <rect x="-0.5" y="-9" width="1" height="9" fill="#3a2410"/>
+      <path d="M 0 -9 L 7 -3 L 0 -3 Z" fill="#f3e8c8" stroke="#5a3f10" stroke-width="0.4"/>
+    </symbol>
+
   </defs>
 
-  <!-- =================== Sea / paper base =================== -->
-  <rect width="1200" height="820" fill="#e6dcb8"/>
-  <rect width="1200" height="820" fill="#b4c4d4" opacity="0.55"/>
-
-  <!-- Soft sea wash gradient -->
-  <rect width="1200" height="820" fill="#7fa4be" opacity="0.18"/>
-
-  <!-- =================== Main landmass =================== -->
+  <rect width="1200" height="820" fill="url(#paperGrad)"/>
+  <!-- Sea background filling the whole stage -->
+  <rect width="1200" height="820" fill="#5e8aa5" opacity="0.40"/>
+  <rect width="1200" height="820" fill="url(#seaGrad)"/>
+  <!-- Landmass: irregular coastline that leaves sea around perimeter -->
   <g filter="url(#wc)">
     <path d="
-      M 60 360
-      C 80 220, 220 130, 360 120
-      C 520 110, 620 160, 800 130
-      C 960 100, 1110 150, 1150 280
-      C 1170 380, 1140 480, 1120 580
-      C 1100 690, 1000 760, 860 770
-      C 700 780, 540 740, 420 760
-      C 280 780, 140 760, 90 660
-      C 40 560, 50 460, 60 360 Z"
-      fill="#e9d8a4"/>
+M 60 360
+C 80 220, 220 130, 360 120
+C 520 110, 640 150, 800 130
+C 960 100, 1110 150, 1150 280
+C 1175 380, 1145 480, 1125 580
+C 1105 690, 1010 770, 870 778
+C 720 786, 560 750, 430 762
+C 280 776, 140 770, 90 660
+C 40 560, 50 460, 60 360 Z
+"     fill="#dfc987"/>
   </g>
-
-  <!-- Subtler inner land wash (warm) -->
-  <g filter="url(#wc2)" opacity="0.55">
+  <g filter="url(#wc2)" opacity="0.42">
     <path d="
-      M 140 360
-      C 180 220, 320 180, 480 200
-      C 640 220, 760 180, 900 200
-      C 1020 220, 1100 280, 1100 420
-      C 1100 540, 1020 660, 880 700
-      C 700 740, 500 700, 360 700
-      C 220 700, 140 600, 140 360 Z"
-      fill="#dec587"/>
+M 150 360
+C 200 220, 340 190, 500 200
+C 660 210, 760 180, 900 200
+C 1020 220, 1100 280, 1095 420
+C 1095 540, 1010 670, 870 706
+C 700 740, 510 700, 370 706
+C 230 706, 150 600, 150 360 Z
+"     fill="#c9b078"/>
   </g>
-
-  <!-- =================== Northern forest band =================== -->
+  <g filter="url(#wc2)" opacity="0.34">
+    <path d="M 240 380 C 360 300, 540 320, 700 380 C 860 430, 980 410, 1060 460 C 1020 560, 880 600, 700 600 C 540 600, 360 560, 280 500 C 230 460, 230 410, 240 380 Z" fill="#9aae6e"/>
+  </g>
+  <!-- Forest washes -->
   <g filter="url(#wc2)" opacity="0.78">
-    <path d="
-      M 180 140
-      C 280 120, 380 130, 480 170
-      C 560 200, 620 180, 700 170
-      C 640 250, 540 260, 460 250
-      C 360 240, 260 250, 180 220 Z"
-      fill="#7a9962"/>
+    <path d="M 100 100 C 220 80, 380 95, 500 130 C 620 150, 700 130, 760 160 C 700 240, 600 250, 480 240 C 360 230, 240 240, 140 220 Z" fill="url(#forestGrad)"/>
   </g>
   <g filter="url(#wc2)" opacity="0.55">
-    <path d="
-      M 190 160
-      C 290 150, 390 165, 470 195
-      C 540 215, 600 195, 660 200
-      C 600 240, 500 245, 420 235
-      C 340 225, 260 235, 200 215 Z"
-      fill="#5a7a4a"/>
+    <path d="M 60 240 C 180 220, 320 240, 420 290 C 380 360, 300 380, 200 380 C 120 380, 60 320, 60 240 Z" fill="#5d7d3e"/>
   </g>
-
-  <!-- =================== Central mountain ridge =================== -->
-  <g filter="url(#wc2)" opacity="0.7">
-    <path d="
-      M 620 220
-      C 700 200, 800 210, 900 200
-      C 960 210, 990 240, 970 280
-      C 950 320, 880 300, 820 290
-      C 760 280, 700 290, 640 280 Z"
-      fill="#a8a098"/>
+  <!-- South forest patch -->
+  <g filter="url(#wc2)" opacity="0.70">
+    <path d="M 60 620 C 180 600, 320 615, 460 660 C 420 740, 280 760, 160 750 C 80 740, 50 700, 60 620 Z" fill="#516f36"/>
   </g>
-
-  <!-- =================== River (winding S band) =================== -->
-  <g opacity="0.8">
-    <path d="
-      M 50 580
-      C 140 540, 230 580, 320 560
-      C 420 540, 500 600, 580 580
-      C 660 560, 720 600, 800 590
-      C 880 580, 960 620, 1050 600
-      C 1110 590, 1160 600, 1180 620"
-      stroke="#7faabf" stroke-width="22" fill="none" stroke-linecap="round" filter="url(#wc2)"/>
-    <path d="
-      M 50 580
-      C 140 540, 230 580, 320 560
-      C 420 540, 500 600, 580 580
-      C 660 560, 720 600, 800 590
-      C 880 580, 960 620, 1050 600
-      C 1110 590, 1160 600, 1180 620"
-      stroke="#5a8eb0" stroke-width="10" fill="none" stroke-linecap="round" opacity="0.55"/>
-    <path d="
-      M 50 580
-      C 140 540, 230 580, 320 560
-      C 420 540, 500 600, 580 580
-      C 660 560, 720 600, 800 590
-      C 880 580, 960 620, 1050 600
-      C 1110 590, 1160 600, 1180 620"
-      stroke="#bcd6e2" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <!-- Central woods -->
+  <g filter="url(#wc3)" opacity="0.50">
+    <path d="M 430 540 C 510 510, 600 540, 620 600 C 600 640, 510 660, 460 640 C 410 620, 410 580, 430 540 Z" fill="#5b7838"/>
   </g>
-
-  <!-- =================== Marshland (around node 16) =================== -->
+  <!-- Mountain massif (NE) -->
   <g filter="url(#wc2)" opacity="0.55">
-    <ellipse cx="760" cy="460" rx="110" ry="55" fill="#8a8aab"/>
+    <path d="M 820 80 C 920 60, 1080 80, 1160 160 C 1180 230, 1130 300, 1040 320 C 920 340, 820 280, 810 200 C 800 140, 810 110, 820 80 Z" fill="#8b8d92"/>
   </g>
-  <g opacity="0.7">
-    <use href="#reed" x="710" y="460"/>
-    <use href="#reed" x="740" y="475"/>
-    <use href="#reed" x="775" y="455"/>
-    <use href="#reed" x="800" y="470"/>
-    <use href="#reed" x="730" y="450"/>
+  <g filter="url(#wc2)" opacity="0.40">
+    <path d="M 840 110 C 940 95, 1060 110, 1130 170 C 1145 220, 1110 280, 1030 290 C 920 300, 845 250, 835 200 C 830 160, 835 130, 840 110 Z" fill="#5e6168"/>
   </g>
-
-  <!-- =================== Golden field (around node 12) =================== -->
-  <g filter="url(#wc2)" opacity="0.7">
-    <ellipse cx="680" cy="600" rx="90" ry="42" fill="#d9b148"/>
+  <g filter="url(#wc3)" opacity="0.40">
+    <path d="M 540 320 C 600 300, 680 310, 740 340 C 740 400, 680 430, 600 420 C 540 410, 520 360, 540 320 Z" fill="#a0967e"/>
   </g>
+  <!-- Marsh of Mercury -->
+  <g filter="url(#wc2)" opacity="0.60">
+    <ellipse cx="760" cy="460" rx="105" ry="55" fill="#7c8aab"/>
+  </g>
+  <g filter="url(#wc3)" opacity="0.40">
+    <ellipse cx="760" cy="460" rx="78" ry="38" fill="#aab8d2"/>
+  </g>
+  <!-- Golden Field plains -->
+  <g filter="url(#wc2)" opacity="0.85">
+    <ellipse cx="690" cy="600" rx="100" ry="52" fill="#d9b148"/>
+  </g>
+  <g filter="url(#wc3)" opacity="0.55">
+    <ellipse cx="690" cy="600" rx="78" ry="36" fill="#e5c66c"/>
+  </g>
+  <!-- Quarry stone scar -->
+  <g filter="url(#wc3)" opacity="0.55">
+    <ellipse cx="180" cy="700" rx="68" ry="38" fill="#a89e8c"/>
+  </g>
+  <g opacity="0.4">
+    <ellipse cx="160" cy="710" rx="14" ry="6" fill="#5e5648"/>
+    <ellipse cx="200" cy="690" rx="12" ry="5" fill="#5e5648"/>
+    <ellipse cx="190" cy="722" rx="10" ry="4" fill="#5e5648"/>
+  </g>
+  <g filter="url(#wc3)" opacity="0.55">
+    <ellipse cx="340" cy="700" rx="60" ry="32" fill="#3e362c"/>
+  </g>
+  <g filter="url(#wc3)" opacity="0.45">
+    <ellipse cx="380" cy="200" rx="48" ry="26" fill="#a26a9a"/>
+  </g>
+  <!-- River 1: NE mountains → Mercury Marsh → south sea -->
   <g opacity="0.85">
-    <use href="#wheat" x="640" y="600"/>
-    <use href="#wheat" x="660" y="590"/>
-    <use href="#wheat" x="680" y="600"/>
-    <use href="#wheat" x="700" y="592"/>
-    <use href="#wheat" x="720" y="605"/>
-    <use href="#wheat" x="650" y="615"/>
-    <use href="#wheat" x="690" y="615"/>
-    <use href="#wheat" x="710" y="618"/>
+    <path d="M 1080 110 C 1020 180, 980 220, 940 260 C 900 300, 850 340, 820 400 C 800 440, 800 460, 820 480 C 850 510, 870 560, 880 620 C 890 680, 880 740, 870 780" stroke="#6c9cb8" stroke-width="22" fill="none" stroke-linecap="round" filter="url(#wc2)"/>
+    <path d="M 1080 110 C 1020 180, 980 220, 940 260 C 900 300, 850 340, 820 400 C 800 440, 800 460, 820 480 C 850 510, 870 560, 880 620 C 890 680, 880 740, 870 780" stroke="#4d7892" stroke-width="11" fill="none" stroke-linecap="round" opacity="0.55"/>
+    <path d="M 1080 110 C 1020 180, 980 220, 940 260 C 900 300, 850 340, 820 400 C 800 440, 800 460, 820 480 C 850 510, 870 560, 880 620 C 890 680, 880 740, 870 780" stroke="#bcd6e2" stroke-width="2.8" fill="none" stroke-linecap="round" opacity="0.7"/>
   </g>
-
-  <!-- =================== Forest stamps (north) =================== -->
+  <!-- Creek: north hills → west of Moss Crossing → south sea -->
+  <g opacity="0.65">
+    <path d="M 200 100 C 180 180, 160 270, 150 360 C 145 430, 130 500, 120 600 C 110 680, 100 740, 110 790" stroke="#6c9cb8" stroke-width="14" fill="none" stroke-linecap="round" filter="url(#wc2)"/>
+    <path d="M 200 100 C 180 180, 160 270, 150 360 C 145 430, 130 500, 120 600 C 110 680, 100 740, 110 790" stroke="#bcd6e2" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.7"/>
+  </g>
+  <!-- Rolling-hill brush strokes -->
+  <use href="#hill" x="579.9" y="405.8"/>
+  <use href="#hill" x="648.6" y="389.3"/>
+  <use href="#hill" x="738.8" y="346.6"/>
+  <use href="#hill" x="558.3" y="378.1"/>
+  <use href="#hill" x="656.9" y="357.2"/>
+  <use href="#hill" x="590.1" y="353.4"/>
+  <use href="#hill" x="688.4" y="426.7"/>
+  <use href="#hill" x="569.0" y="331.5"/>
+  <use href="#hill" x="544.9" y="423.5"/>
+  <use href="#hill" x="604.5" y="388.5"/>
+  <use href="#hill" x="629.8" y="330.8"/>
+  <use href="#hill" x="656.8" y="423.7"/>
+  <!-- Mountain peaks (NE massif) -->
+  <g filter="url(#deepshadow)">
+    <g transform="translate(982.8 106.9) scale(0.99)"><use href="#mtn"/></g>
+    <g transform="translate(841.2 108.4) scale(1.07)"><use href="#mtn"/></g>
+    <g transform="translate(934.9 110.7) scale(0.96)"><use href="#mtnSmall"/></g>
+    <g transform="translate(1090.4 119.0) scale(1.13)"><use href="#mtn"/></g>
+    <g transform="translate(879.3 120.4) scale(1.05)"><use href="#mtn"/></g>
+    <g transform="translate(1016.7 124.0) scale(1.02)"><use href="#mtnSmall"/></g>
+    <g transform="translate(1052.5 127.3) scale(1.03)"><use href="#mtn"/></g>
+    <g transform="translate(1153.3 138.1) scale(1.10)"><use href="#mtn"/></g>
+    <g transform="translate(847.6 147.1) scale(0.99)"><use href="#mtnSmall"/></g>
+    <g transform="translate(997.4 155.9) scale(0.90)"><use href="#mtn"/></g>
+    <g transform="translate(1032.0 156.9) scale(1.08)"><use href="#mtn"/></g>
+    <g transform="translate(947.0 164.8) scale(0.87)"><use href="#mtnSmall"/></g>
+    <g transform="translate(1107.2 166.3) scale(0.94)"><use href="#mtn"/></g>
+    <g transform="translate(910.1 167.9) scale(0.92)"><use href="#mtn"/></g>
+    <g transform="translate(829.5 175.0) scale(1.08)"><use href="#mtnSmall"/></g>
+    <g transform="translate(1064.8 186.0) scale(1.09)"><use href="#mtn"/></g>
+    <g transform="translate(980.2 197.0) scale(0.87)"><use href="#mtn"/></g>
+    <g transform="translate(934.1 199.3) scale(1.08)"><use href="#mtnSmall"/></g>
+    <g transform="translate(1135.9 213.4) scale(1.03)"><use href="#mtn"/></g>
+    <g transform="translate(1011.5 217.4) scale(0.94)"><use href="#mtn"/></g>
+    <g transform="translate(1076.0 226.6) scale(0.87)"><use href="#mtnSmall"/></g>
+    <g transform="translate(1135.5 260.9) scale(1.00)"><use href="#mtn"/></g>
+    <g transform="translate(892.4 267.1) scale(1.01)"><use href="#mtn"/></g>
+    <g transform="translate(830.2 281.1) scale(0.86)"><use href="#mtnSmall"/></g>
+    <g transform="translate(1086.2 284.6) scale(0.98)"><use href="#mtn"/></g>
+    <g transform="translate(1143.9 301.8) scale(0.94)"><use href="#mtn"/></g>
+    <g transform="translate(863.0 310.4) scale(1.15)"><use href="#mtnSmall"/></g>
+    <g transform="translate(1068.4 316.2) scale(1.07)"><use href="#mtn"/></g>
+  </g>
+  <!-- Forest trees: northern band -->
   <g filter="url(#softshadow)">
-    <use href="#tree" x="230" y="180"/>
-    <use href="#tree" x="265" y="200"/>
-    <use href="#pine" x="295" y="175"/>
-    <use href="#tree" x="320" y="195"/>
-    <use href="#pine" x="350" y="180"/>
-    <use href="#pine" x="385" y="195"/>
-    <use href="#tree" x="415" y="180"/>
-    <use href="#tree" x="450" y="200"/>
-    <use href="#pine" x="240" y="220"/>
-    <use href="#tree" x="280" y="240"/>
-    <use href="#pine" x="320" y="225"/>
-    <use href="#tree" x="360" y="240"/>
-    <use href="#pine" x="400" y="225"/>
-    <use href="#tree" x="195" y="160"/>
-    <use href="#tree" x="225" y="155"/>
-    <use href="#pine" x="380" y="155"/>
-    <use href="#tree" x="430" y="160"/>
+    <use href="#tree" x="395.6" y="137.7"/>
+    <use href="#pine" x="444.2" y="65.2"/>
+    <use href="#tree" x="269.0" y="87.0"/>
+    <use href="#tree" x="101.0" y="90.8"/>
+    <use href="#treeBig" x="696.3" y="68.3"/>
+    <use href="#tree" x="355.9" y="132.5"/>
+    <use href="#tree" x="682.6" y="166.5"/>
+    <use href="#tree" x="655.4" y="69.0"/>
+    <use href="#tree" x="439.4" y="213.8"/>
+    <use href="#tree" x="587.2" y="50.6"/>
+    <use href="#tree" x="973.4" y="242.0"/>
+    <use href="#tree" x="287.7" y="84.7"/>
+    <use href="#treeBig" x="289.1" y="202.0"/>
+    <use href="#pine" x="389.6" y="117.9"/>
+    <use href="#pine" x="531.1" y="105.7"/>
+    <use href="#pine" x="195.5" y="99.1"/>
+    <use href="#tree" x="731.9" y="74.8"/>
+    <use href="#pine" x="732.3" y="135.9"/>
+    <use href="#tree" x="570.0" y="110.0"/>
+    <use href="#tree" x="581.2" y="87.0"/>
+    <use href="#treeBig" x="618.9" y="180.1"/>
+    <use href="#treeBig" x="432.6" y="193.8"/>
+    <use href="#tree" x="283.1" y="173.4"/>
+    <use href="#tree" x="757.6" y="87.7"/>
+    <use href="#tree" x="118.5" y="143.9"/>
+    <use href="#pine" x="171.7" y="138.4"/>
+    <use href="#pine" x="669.9" y="213.8"/>
+    <use href="#tree" x="69.0" y="96.2"/>
+    <use href="#pine" x="1112.9" y="222.5"/>
+    <use href="#tree" x="475.1" y="266.5"/>
+    <use href="#pine" x="516.9" y="185.9"/>
+    <use href="#tree" x="141.5" y="227.1"/>
+    <use href="#pine" x="122.7" y="223.2"/>
+    <use href="#tree" x="1094.9" y="228.9"/>
+    <use href="#pine" x="323.8" y="161.3"/>
+    <use href="#tree" x="799.7" y="231.0"/>
+    <use href="#tree" x="117.3" y="237.6"/>
+    <use href="#pine" x="593.3" y="241.7"/>
+    <use href="#pine" x="56.1" y="123.8"/>
+    <use href="#tree" x="543.6" y="59.6"/>
+    <use href="#tree" x="106.4" y="227.1"/>
+    <use href="#tree" x="353.3" y="56.5"/>
+    <use href="#treeBig" x="34.5" y="67.3"/>
+    <use href="#tree" x="381.5" y="87.0"/>
+    <use href="#tree" x="541.4" y="229.6"/>
+    <use href="#tree" x="752.7" y="238.1"/>
+    <use href="#pine" x="419.0" y="266.5"/>
+    <use href="#pine" x="1065.8" y="246.1"/>
+    <use href="#tree" x="1010.9" y="238.9"/>
+    <use href="#treeBig" x="767.6" y="243.2"/>
+    <use href="#tree" x="491.2" y="206.2"/>
+    <use href="#tree" x="214.1" y="146.1"/>
+    <use href="#pine" x="303.1" y="156.3"/>
+    <use href="#pine" x="125.7" y="206.5"/>
+    <use href="#tree" x="520.9" y="263.4"/>
+    <use href="#tree" x="343.2" y="266.8"/>
+    <use href="#tree" x="571.4" y="203.1"/>
+    <use href="#pine" x="27.8" y="247.8"/>
+    <use href="#tree" x="846.0" y="265.1"/>
+    <use href="#pine" x="401.9" y="164.7"/>
+    <use href="#tree" x="60.4" y="68.8"/>
+    <use href="#treeBig" x="735.7" y="224.5"/>
+    <use href="#pine" x="1092.1" y="252.0"/>
+    <use href="#tree" x="468.4" y="215.8"/>
+    <use href="#tree" x="474.4" y="144.8"/>
+    <use href="#tree" x="1165.9" y="226.6"/>
+    <use href="#tree" x="220.9" y="123.7"/>
+    <use href="#treeBig" x="995.4" y="249.2"/>
+    <use href="#pine" x="238.4" y="70.5"/>
+    <use href="#tree" x="360.7" y="113.0"/>
+    <use href="#pine" x="614.7" y="158.7"/>
+    <use href="#pine" x="184.0" y="179.1"/>
+    <use href="#pine" x="481.4" y="231.5"/>
+    <use href="#tree" x="170.8" y="60.3"/>
+    <use href="#pine" x="189.2" y="241.0"/>
+    <use href="#tree" x="219.3" y="72.3"/>
+    <use href="#tree" x="232.2" y="190.1"/>
+    <use href="#treeBig" x="436.7" y="136.6"/>
+    <use href="#tree" x="747.4" y="258.8"/>
+    <use href="#pine" x="484.4" y="72.4"/>
+    <use href="#treeBig" x="519.5" y="91.5"/>
+    <use href="#tree" x="147.1" y="122.7"/>
+    <use href="#pine" x="938.9" y="226.2"/>
+    <use href="#tree" x="730.5" y="55.6"/>
+    <use href="#pine" x="703.3" y="179.3"/>
+    <use href="#pine" x="93.9" y="132.9"/>
+    <use href="#treeBig" x="282.1" y="102.1"/>
+    <use href="#pine" x="255.2" y="144.2"/>
+    <use href="#tree" x="572.3" y="244.4"/>
+    <use href="#tree" x="621.6" y="96.7"/>
+    <use href="#tree" x="984.9" y="223.2"/>
+    <use href="#treeBig" x="199.3" y="141.7"/>
+    <use href="#tree" x="1128.7" y="221.8"/>
+    <use href="#pine" x="192.1" y="255.6"/>
+    <use href="#tree" x="524.5" y="173.0"/>
+    <use href="#tree" x="26.4" y="209.0"/>
+    <use href="#tree" x="697.2" y="198.3"/>
+    <use href="#tree" x="750.4" y="215.0"/>
+    <use href="#tree" x="311.4" y="189.9"/>
+    <use href="#tree" x="85.7" y="234.0"/>
+    <use href="#tree" x="91.3" y="78.6"/>
+    <use href="#treeBig" x="693.0" y="105.2"/>
+    <use href="#tree" x="631.4" y="190.8"/>
+    <use href="#tree" x="556.1" y="148.3"/>
+    <use href="#tree" x="656.0" y="117.6"/>
+    <use href="#tree" x="304.2" y="255.4"/>
+    <use href="#pine" x="466.7" y="86.5"/>
+    <use href="#tree" x="421.9" y="139.1"/>
+    <use href="#tree" x="326.8" y="202.7"/>
+    <use href="#pine" x="167.2" y="93.7"/>
   </g>
-
-  <!-- =================== Mountain stamps (central ridge) =================== -->
+  <!-- Forest trees: west-central -->
   <g filter="url(#softshadow)">
-    <use href="#mtn" x="640" y="280"/>
-    <use href="#mtn" x="690" y="270"/>
-    <use href="#mtn" x="745" y="285"/>
-    <use href="#mtn" x="800" y="260"/>
-    <use href="#mtn" x="855" y="275"/>
-    <use href="#mtn" x="905" y="265"/>
-    <use href="#mtn" x="960" y="285"/>
+    <use href="#pine" x="349.6" y="286.7"/>
+    <use href="#tree" x="335.2" y="415.0"/>
+    <use href="#pine" x="403.8" y="267.3"/>
+    <use href="#pine" x="89.8" y="410.7"/>
+    <use href="#tree" x="319.3" y="255.6"/>
+    <use href="#tree" x="116.2" y="388.3"/>
+    <use href="#tree" x="86.8" y="328.5"/>
+    <use href="#pine" x="132.6" y="368.6"/>
+    <use href="#pine" x="316.8" y="294.6"/>
+    <use href="#tree" x="164.0" y="395.4"/>
+    <use href="#pine" x="154.1" y="305.5"/>
+    <use href="#tree" x="329.0" y="341.2"/>
+    <use href="#tree" x="124.8" y="339.4"/>
+    <use href="#tree" x="102.8" y="298.2"/>
+    <use href="#tree" x="298.8" y="281.4"/>
+    <use href="#tree" x="281.6" y="348.2"/>
+    <use href="#tree" x="353.5" y="258.2"/>
+    <use href="#pine" x="331.4" y="383.8"/>
+    <use href="#pine" x="277.1" y="321.6"/>
+    <use href="#tree" x="410.9" y="294.9"/>
+    <use href="#tree" x="233.7" y="257.1"/>
+    <use href="#tree" x="440.8" y="306.0"/>
+    <use href="#pine" x="356.3" y="419.1"/>
+    <use href="#tree" x="217.1" y="315.6"/>
+    <use href="#pine" x="439.3" y="410.3"/>
+    <use href="#tree" x="122.0" y="245.1"/>
+    <use href="#tree" x="347.5" y="334.6"/>
+    <use href="#tree" x="427.7" y="341.8"/>
+    <use href="#pine" x="315.5" y="359.2"/>
+    <use href="#pine" x="152.8" y="245.7"/>
+    <use href="#tree" x="148.3" y="261.0"/>
+    <use href="#pine" x="207.1" y="367.2"/>
+    <use href="#tree" x="146.2" y="401.3"/>
+    <use href="#tree" x="393.3" y="300.3"/>
+    <use href="#tree" x="66.3" y="362.8"/>
+    <use href="#pine" x="298.7" y="364.3"/>
+    <use href="#tree" x="294.8" y="310.4"/>
+    <use href="#tree" x="301.2" y="296.4"/>
+    <use href="#tree" x="331.7" y="366.4"/>
+    <use href="#tree" x="108.0" y="276.8"/>
+    <use href="#pine" x="404.4" y="385.4"/>
+    <use href="#tree" x="384.7" y="281.7"/>
+    <use href="#pine" x="90.1" y="283.0"/>
+    <use href="#tree" x="430.0" y="384.9"/>
+    <use href="#tree" x="52.0" y="270.8"/>
+    <use href="#tree" x="177.5" y="354.2"/>
+    <use href="#tree" x="330.0" y="274.1"/>
+    <use href="#tree" x="70.2" y="317.4"/>
+    <use href="#tree" x="414.5" y="317.3"/>
+    <use href="#tree" x="112.7" y="367.5"/>
+    <use href="#tree" x="79.3" y="257.5"/>
+    <use href="#tree" x="453.6" y="382.1"/>
+    <use href="#tree" x="406.5" y="333.1"/>
+    <use href="#pine" x="55.9" y="326.7"/>
+    <use href="#tree" x="191.8" y="418.9"/>
   </g>
-
-  <!-- =================== Scattered minor trees (south band) =================== -->
+  <!-- Forest trees: south band -->
+  <g filter="url(#softshadow)">
+    <use href="#tree" x="208.2" y="773.3"/>
+    <use href="#pine" x="366.8" y="769.5"/>
+    <use href="#pine" x="98.9" y="630.9"/>
+    <use href="#tree" x="455.8" y="719.3"/>
+    <use href="#pine" x="334.9" y="767.0"/>
+    <use href="#pine" x="389.5" y="703.4"/>
+    <use href="#tree" x="239.8" y="667.9"/>
+    <use href="#tree" x="117.8" y="761.0"/>
+    <use href="#pine" x="437.9" y="724.2"/>
+    <use href="#tree" x="378.9" y="756.1"/>
+    <use href="#pine" x="150.5" y="742.1"/>
+    <use href="#pine" x="430.2" y="753.1"/>
+    <use href="#treeBig" x="410.7" y="694.7"/>
+    <use href="#tree" x="65.9" y="665.4"/>
+    <use href="#pine" x="346.8" y="779.6"/>
+    <use href="#pine" x="70.2" y="713.4"/>
+    <use href="#pine" x="175.6" y="634.4"/>
+    <use href="#tree" x="433.9" y="656.5"/>
+    <use href="#pine" x="130.0" y="747.2"/>
+    <use href="#pine" x="299.4" y="716.4"/>
+    <use href="#pine" x="242.2" y="604.2"/>
+    <use href="#tree" x="101.8" y="607.7"/>
+    <use href="#tree" x="229.1" y="767.6"/>
+    <use href="#pine" x="448.3" y="683.2"/>
+    <use href="#tree" x="222.5" y="722.5"/>
+    <use href="#pine" x="238.5" y="744.6"/>
+    <use href="#pine" x="375.4" y="624.2"/>
+    <use href="#tree" x="129.1" y="771.5"/>
+    <use href="#tree" x="349.4" y="755.4"/>
+    <use href="#pine" x="410.2" y="660.1"/>
+    <use href="#pine" x="137.8" y="639.2"/>
+    <use href="#pine" x="186.2" y="766.2"/>
+    <use href="#tree" x="289.2" y="661.1"/>
+    <use href="#pine" x="414.5" y="757.0"/>
+    <use href="#tree" x="397.1" y="751.6"/>
+    <use href="#treeBig" x="128.1" y="700.9"/>
+    <use href="#pine" x="389.2" y="610.9"/>
+    <use href="#tree" x="319.4" y="630.0"/>
+    <use href="#tree" x="157.6" y="604.3"/>
+    <use href="#treeBig" x="427.9" y="684.0"/>
+    <use href="#tree" x="114.9" y="637.0"/>
+    <use href="#pine" x="174.7" y="736.9"/>
+    <use href="#pine" x="430.2" y="702.2"/>
+    <use href="#pine" x="389.2" y="728.9"/>
+    <use href="#treeBig" x="308.8" y="742.0"/>
+    <use href="#tree" x="210.9" y="735.1"/>
+    <use href="#tree" x="343.3" y="737.7"/>
+    <use href="#pine" x="272.0" y="764.2"/>
+    <use href="#tree" x="371.1" y="638.6"/>
+    <use href="#tree" x="137.3" y="674.4"/>
+    <use href="#pine" x="316.6" y="670.1"/>
+    <use href="#tree" x="451.0" y="635.0"/>
+    <use href="#pine" x="352.8" y="636.7"/>
+    <use href="#tree" x="324.6" y="741.0"/>
+    <use href="#treeBig" x="318.3" y="655.2"/>
+  </g>
+  <!-- Forest trees: central woods -->
+  <g filter="url(#softshadow)" opacity="0.95">
+    <use href="#tree" x="474.8" y="554.4"/>
+    <use href="#tree" x="560.1" y="674.5"/>
+    <use href="#tree" x="436.9" y="629.6"/>
+    <use href="#tree" x="447.4" y="643.1"/>
+    <use href="#tree" x="510.5" y="672.5"/>
+    <use href="#tree" x="400.2" y="670.5"/>
+    <use href="#pine" x="463.6" y="674.8"/>
+    <use href="#pine" x="423.2" y="649.3"/>
+    <use href="#pine" x="481.3" y="628.2"/>
+    <use href="#tree" x="488.3" y="644.1"/>
+    <use href="#tree" x="576.3" y="673.1"/>
+    <use href="#tree" x="532.1" y="552.7"/>
+    <use href="#tree" x="498.0" y="546.0"/>
+    <use href="#tree" x="507.6" y="577.5"/>
+    <use href="#tree" x="422.5" y="665.2"/>
+    <use href="#tree" x="515.2" y="532.9"/>
+    <use href="#tree" x="406.2" y="565.0"/>
+    <use href="#tree" x="599.3" y="678.0"/>
+    <use href="#tree" x="469.4" y="618.8"/>
+    <use href="#tree" x="527.5" y="575.5"/>
+    <use href="#pine" x="545.8" y="664.0"/>
+    <use href="#tree" x="455.9" y="592.9"/>
+    <use href="#tree" x="448.3" y="575.5"/>
+    <use href="#tree" x="419.9" y="633.7"/>
+    <use href="#tree" x="434.9" y="609.3"/>
+  </g>
+  <!-- Wheat stalks: Golden Field -->
+  <g opacity="0.92">
+    <use href="#wheat" x="766.4" y="593.6"/>
+    <use href="#wheat" x="741.4" y="637.5"/>
+    <use href="#wheat" x="668.0" y="648.2"/>
+    <use href="#wheat" x="760.2" y="632.0"/>
+    <use href="#wheat" x="683.4" y="648.3"/>
+    <use href="#wheat" x="631.9" y="650.1"/>
+    <use href="#wheat" x="656.4" y="564.3"/>
+    <use href="#wheat" x="733.0" y="658.7"/>
+    <use href="#wheat" x="742.4" y="606.4"/>
+    <use href="#wheat" x="726.0" y="607.8"/>
+    <use href="#wheat" x="620.9" y="580.3"/>
+    <use href="#wheat" x="690.0" y="631.8"/>
+    <use href="#wheat" x="710.3" y="651.1"/>
+    <use href="#wheat" x="767.3" y="570.0"/>
+    <use href="#wheat" x="749.7" y="585.2"/>
+    <use href="#wheat" x="752.4" y="655.1"/>
+    <use href="#wheat" x="666.8" y="632.8"/>
+    <use href="#wheat" x="637.2" y="574.8"/>
+    <use href="#wheat" x="708.0" y="632.9"/>
+    <use href="#wheat" x="767.2" y="610.2"/>
+    <use href="#wheat" x="651.7" y="638.7"/>
+    <use href="#wheat" x="747.0" y="620.8"/>
+    <use href="#wheat" x="724.3" y="632.5"/>
+    <use href="#wheat" x="622.1" y="562.6"/>
+    <use href="#wheat" x="695.9" y="657.4"/>
+    <use href="#wheat" x="705.2" y="617.9"/>
+  </g>
+  <!-- Marsh reeds -->
+  <g opacity="0.85">
+    <use href="#reed" x="802.0" y="461.1"/>
+    <use href="#reed" x="814.5" y="469.8"/>
+    <use href="#reed" x="763.6" y="489.9"/>
+    <use href="#reed" x="825.7" y="469.4"/>
+    <use href="#reed" x="798.1" y="471.3"/>
+    <use href="#reed" x="695.9" y="439.8"/>
+    <use href="#reed" x="701.2" y="431.9"/>
+    <use href="#reed" x="787.7" y="476.8"/>
+    <use href="#reed" x="791.0" y="442.5"/>
+    <use href="#reed" x="793.7" y="470.6"/>
+    <use href="#reed" x="786.1" y="440.7"/>
+    <use href="#reed" x="819.4" y="430.7"/>
+    <use href="#reed" x="818.5" y="448.9"/>
+    <use href="#reed" x="813.9" y="442.3"/>
+    <use href="#reed" x="801.8" y="480.8"/>
+    <use href="#reed" x="798.9" y="442.9"/>
+    <path d="M 771.3 464.7 Q 779.3 462.7 787.3 464.7" stroke="#cdd6e0" stroke-width="0.7" fill="none" opacity="0.7"/>
+    <path d="M 811.7 476.1 Q 819.7 474.1 827.7 476.1" stroke="#cdd6e0" stroke-width="0.7" fill="none" opacity="0.7"/>
+    <path d="M 699.3 461.3 Q 707.3 459.3 715.3 461.3" stroke="#cdd6e0" stroke-width="0.7" fill="none" opacity="0.7"/>
+    <path d="M 711.4 454.1 Q 719.4 452.1 727.4 454.1" stroke="#cdd6e0" stroke-width="0.7" fill="none" opacity="0.7"/>
+    <path d="M 706.0 452.2 Q 714.0 450.2 722.0 452.2" stroke="#cdd6e0" stroke-width="0.7" fill="none" opacity="0.7"/>
+    <path d="M 788.7 484.1 Q 796.7 482.1 804.7 484.1" stroke="#cdd6e0" stroke-width="0.7" fill="none" opacity="0.7"/>
+    <path d="M 783.7 462.2 Q 791.7 460.2 799.7 462.2" stroke="#cdd6e0" stroke-width="0.7" fill="none" opacity="0.7"/>
+    <path d="M 809.1 476.2 Q 817.1 474.2 825.1 476.2" stroke="#cdd6e0" stroke-width="0.7" fill="none" opacity="0.7"/>
+  </g>
+  <!-- Tower ruins -->
   <g filter="url(#softshadow)" opacity="0.9">
-    <use href="#tree" x="500" y="635"/>
-    <use href="#tree" x="540" y="650"/>
-    <use href="#pine" x="500" y="615"/>
-    <use href="#pine" x="555" y="625"/>
-    <use href="#tree" x="475" y="640"/>
+    <use href="#ruin" x="556.0" y="296.0"/>
+    <use href="#ruin" x="864.0" y="372.0"/>
+    <use href="#ruin" x="270.0" y="410.0"/>
   </g>
-
-  <!-- =================== Ruined tower hint near node 9 =================== -->
+  <!-- Standing stones cluster (decorative landmarks) -->
+  <g filter="url(#softshadow)" opacity="0.92">
+    <use href="#standingStones" x="270" y="380"/>
+    <use href="#standingStones" x="820" y="440"/>
+  </g>
+  <!-- Creep markers (Bandit Camp / Wolf Den) -->
   <g filter="url(#softshadow)" opacity="0.85">
-    <use href="#ruin" x="556" y="296"/>
+    <use href="#skull" x="475" y="510"/>
+    <use href="#skull" x="655" y="475"/>
   </g>
-
-  <!-- =================== Bandit / wolf creep zone markers =================== -->
-  <g filter="url(#softshadow)" opacity="0.85">
-    <use href="#skull" x="500" y="430"/>
-    <use href="#skull" x="660" y="395"/>
-  </g>
-
-  <!-- =================== Coastline outline (hand-drawn dark line) =================== -->
+  <!-- Hand-drawn coastline ink stroke -->
   <g filter="url(#wc)">
     <path d="
-      M 60 360
-      C 80 220, 220 130, 360 120
-      C 520 110, 620 160, 800 130
-      C 960 100, 1110 150, 1150 280
-      C 1170 380, 1140 480, 1120 580
-      C 1100 690, 1000 760, 860 770
-      C 700 780, 540 740, 420 760
-      C 280 780, 140 760, 90 660
-      C 40 560, 50 460, 60 360 Z"
-      fill="none" stroke="#4a3a1e" stroke-width="2.2" opacity="0.65"/>
+M 60 360
+C 80 220, 220 130, 360 120
+C 520 110, 640 150, 800 130
+C 960 100, 1110 150, 1150 280
+C 1175 380, 1145 480, 1125 580
+C 1105 690, 1010 770, 870 778
+C 720 786, 560 750, 430 762
+C 280 776, 140 770, 90 660
+C 40 560, 50 460, 60 360 Z
+"     fill="none" stroke="#3a2810" stroke-width="2.4" opacity="0.65"/>
   </g>
-
-  <!-- =================== Paper grain overlay =================== -->
-  <rect width="1200" height="820" filter="url(#paper)" opacity="0.45"/>
-
-  <!-- =================== Vignette =================== -->
+  <g>
+    <path d="
+M 60 360
+C 80 220, 220 130, 360 120
+C 520 110, 640 150, 800 130
+C 960 100, 1110 150, 1150 280
+C 1175 380, 1145 480, 1125 580
+C 1105 690, 1010 770, 870 778
+C 720 786, 560 750, 430 762
+C 280 776, 140 770, 90 660
+C 40 560, 50 460, 60 360 Z
+"     fill="none" stroke="#5a3f10" stroke-width="0.6" stroke-dasharray="2,5" opacity="0.6"/>
+  </g>
+  <!-- Ocean wave hatching -->
+  <g opacity="0.50">
+    <use href="#wave" x="30" y="80"/>
+    <use href="#wave" x="60" y="110"/>
+    <use href="#wave" x="90" y="80"/>
+    <use href="#wave" x="120" y="110"/>
+    <use href="#wave" x="30" y="130"/>
+    <use href="#wave" x="60" y="150"/>
+    <use href="#wave" x="1080" y="690"/>
+    <use href="#wave" x="1110" y="710"/>
+    <use href="#wave" x="1140" y="690"/>
+    <use href="#wave" x="1080" y="720"/>
+    <use href="#wave" x="1110" y="740"/>
+    <use href="#wave" x="1140" y="720"/>
+    <use href="#wave" x="1100" y="90"/>
+    <use href="#wave" x="1130" y="110"/>
+    <use href="#wave" x="1160" y="90"/>
+    <use href="#wave" x="1130" y="130"/>
+    <use href="#wave" x="40" y="720"/>
+    <use href="#wave" x="70" y="740"/>
+    <use href="#wave" x="100" y="720"/>
+    <use href="#wave" x="40" y="750"/>
+    <use href="#wave" x="70" y="770"/>
+    <use href="#wave" x="40" y="790"/>
+  </g>
+  <use href="#boat" x="950" y="760" filter="url(#softshadow)"/>
+  <!-- Paper grain overlay -->
+  <rect width="1200" height="820" filter="url(#paper)" opacity="0.42"/>
+  <!-- Vignette -->
   <rect width="1200" height="820" fill="url(#vignette)"/>
-
-  <!-- =================== Sea wave hatching =================== -->
-  <g stroke="#5a8eb0" stroke-width="0.8" fill="none" opacity="0.35">
-    <path d="M 30 80 q 12 -4 24 0 t 24 0"/>
-    <path d="M 30 110 q 12 -4 24 0 t 24 0"/>
-    <path d="M 1100 700 q 12 -4 24 0 t 24 0"/>
-    <path d="M 1100 730 q 12 -4 24 0 t 24 0"/>
-    <path d="M 1100 760 q 12 -4 24 0 t 24 0"/>
-    <path d="M 30 740 q 12 -4 24 0 t 24 0"/>
-    <path d="M 30 770 q 12 -4 24 0 t 24 0"/>
-    <path d="M 1130 90 q 12 -4 24 0 t 24 0"/>
-    <path d="M 1130 120 q 12 -4 24 0 t 24 0"/>
-  </g>
-
-  <!-- =================== Compass rose (top-right) =================== -->
+  <!-- Compass rose -->
   <g transform="translate(1090, 90)" filter="url(#softshadow)">
-    <!-- Outer ring -->
-    <circle r="42" fill="#f3e8c8" opacity="0.92" stroke="#5a3f10" stroke-width="1.2"/>
-    <circle r="36" fill="none" stroke="#5a3f10" stroke-width="0.6" stroke-dasharray="2,3"/>
-    <!-- 8-point star -->
-    <path d="M 0 -34 L 6 -6 L 34 0 L 6 6 L 0 34 L -6 6 L -34 0 L -6 -6 Z"
-          fill="#d4a548" stroke="#5a3f10" stroke-width="0.8"/>
-    <!-- Inner darker counter-points -->
-    <path d="M 0 -22 L 4 0 L 22 0 L 4 0 L 0 22 L -4 0 L -22 0 L -4 0 Z"
-          fill="#8a5d18" opacity="0.9"/>
-    <!-- N pointer accent -->
-    <path d="M 0 -34 L 4 -10 L -4 -10 Z" fill="#8e1d1d"/>
-    <!-- Labels -->
-    <text x="0" y="-46" text-anchor="middle" font-family="Cinzel, serif"
-          font-weight="700" font-size="13" fill="#3a2410">N</text>
-    <text x="50" y="5" text-anchor="middle" font-family="Cinzel, serif"
-          font-weight="700" font-size="12" fill="#3a2410">E</text>
-    <text x="0" y="56" text-anchor="middle" font-family="Cinzel, serif"
-          font-weight="700" font-size="12" fill="#3a2410">S</text>
-    <text x="-50" y="5" text-anchor="middle" font-family="Cinzel, serif"
-          font-weight="700" font-size="12" fill="#3a2410">W</text>
-    <!-- Center pin -->
+    <circle r="46" fill="#f3e8c8" opacity="0.94" stroke="#5a3f10" stroke-width="1.4"/>
+    <circle r="40" fill="none" stroke="#5a3f10" stroke-width="0.6" stroke-dasharray="2,3"/>
+    <path d="M 0 -38 L 7 -7 L 38 0 L 7 7 L 0 38 L -7 7 L -38 0 L -7 -7 Z" fill="#d4a548" stroke="#5a3f10" stroke-width="0.8"/>
+    <path d="M 0 -24 L 4 0 L 24 0 L 4 0 L 0 24 L -4 0 L -24 0 L -4 0 Z" fill="#8a5d18" opacity="0.9"/>
+    <path d="M 0 -38 L 4 -10 L -4 -10 Z" fill="#8e1d1d"/>
+    <text x="0" y="-50" text-anchor="middle" font-family="Cinzel, serif" font-weight="700" font-size="13" fill="#3a2410">N</text>
+    <text x="54" y="5" text-anchor="middle" font-family="Cinzel, serif" font-weight="700" font-size="12" fill="#3a2410">E</text>
+    <text x="0" y="60" text-anchor="middle" font-family="Cinzel, serif" font-weight="700" font-size="12" fill="#3a2410">S</text>
+    <text x="-54" y="5" text-anchor="middle" font-family="Cinzel, serif" font-weight="700" font-size="12" fill="#3a2410">W</text>
     <circle r="3" fill="#3a2410"/>
   </g>
-
-  <!-- =================== Title cartouche (top-left) =================== -->
+  <!-- Title cartouche -->
   <g transform="translate(60, 60)" filter="url(#softshadow)">
-    <path d="M 0 0 L 280 0 Q 296 0 296 16 L 296 56 Q 296 72 280 72 L 0 72 Q -16 72 -16 56 L -16 16 Q -16 0 0 0 Z"
-          fill="#f3e8c8" opacity="0.92" stroke="#5a3f10" stroke-width="1.2"/>
-    <path d="M 4 4 L 276 4 L 276 68 L 4 68 Z"
-          fill="none" stroke="#8a5d18" stroke-width="0.5" stroke-dasharray="3,3"/>
-    <text x="140" y="32" text-anchor="middle" font-family="Cinzel, serif"
-          font-weight="800" font-size="20" letter-spacing="3" fill="#3a2410">REALM OF</text>
-    <text x="140" y="56" text-anchor="middle" font-family="MedievalSharp, Cinzel, serif"
-          font-size="22" letter-spacing="2" fill="#8e1d1d">Ardent Flame</text>
-    <!-- Corner flourishes -->
+    <path d="M 0 0 L 280 0 Q 296 0 296 16 L 296 56 Q 296 72 280 72 L 0 72 Q -16 72 -16 56 L -16 16 Q -16 0 0 0 Z" fill="#f3e8c8" opacity="0.94" stroke="#5a3f10" stroke-width="1.4"/>
+    <path d="M 4 4 L 276 4 L 276 68 L 4 68 Z" fill="none" stroke="#8a5d18" stroke-width="0.6" stroke-dasharray="3,3"/>
+    <text x="140" y="32" text-anchor="middle" font-family="Cinzel, serif" font-weight="800" font-size="20" letter-spacing="3" fill="#3a2410">REALM OF</text>
+    <text x="140" y="56" text-anchor="middle" font-family="MedievalSharp, Cinzel, serif" font-size="22" letter-spacing="2" fill="#8e1d1d">Ardent Flame</text>
     <circle cx="-4" cy="36" r="3.5" fill="#d4a548" stroke="#5a3f10" stroke-width="0.6"/>
     <circle cx="284" cy="36" r="3.5" fill="#d4a548" stroke="#5a3f10" stroke-width="0.6"/>
   </g>
-
-  <!-- =================== Hand-drawn frame border =================== -->
+  <!-- Outer hand-drawn frame -->
   <g filter="url(#wc)">
     <rect x="14" y="14" width="1172" height="792" fill="none" stroke="#3a2410" stroke-width="3" opacity="0.55"/>
   </g>
-  <g>
-    <rect x="22" y="22" width="1156" height="776" fill="none" stroke="#8a5d18" stroke-width="0.6" stroke-dasharray="6,4" opacity="0.55"/>
+  <rect x="22" y="22" width="1156" height="776" fill="none" stroke="#8a5d18" stroke-width="0.6" stroke-dasharray="6,4" opacity="0.55"/>
+  <!-- Decorative region labels -->
+  <g font-family="Cinzel, serif" fill="#5a3f10" opacity="0.55">
+    <text x="220" y="120" font-size="18" letter-spacing="6" font-style="italic">SILVERWOOD</text>
+    <text x="970" y="80"  font-size="18" letter-spacing="6" font-style="italic">DRAGONSPINE</text>
+    <text x="730" y="700" font-size="16" letter-spacing="6" font-style="italic">Sunbarrow Plains</text>
+    <text x="120" y="780" font-size="14" letter-spacing="5" font-style="italic">Stonemarrow</text>
+    <text x="780" y="500" font-size="13" letter-spacing="4" font-style="italic">Mercury Mire</text>
+    <text x="800" y="640" font-size="13" letter-spacing="3" font-style="italic">Glittering Sea</text>
   </g>
 </svg>
