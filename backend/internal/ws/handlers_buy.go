@@ -38,14 +38,36 @@ func (h *BuyHandler) Handle(ctx context.Context, c *Client, env proto.Envelope) 
 		return err
 	}
 
-	cost := int64(unit.CostGold) * int64(req.Qty)
+	costGold := int64(unit.CostGold) * int64(req.Qty)
+	costMetal := int64(unit.CostMetal) * int64(req.Qty)
+	costGems := int64(unit.CostGems) * int64(req.Qty)
+	costCoal := int64(unit.CostCoal) * int64(req.Qty)
+	costWood := int64(unit.CostWood) * int64(req.Qty)
+	costStone := int64(unit.CostStone) * int64(req.Qty)
 	player, err := h.router.store.Q.GetPlayer(ctx, c.playerID)
 	if err != nil {
 		return err
 	}
 	gold, _ := player.Gold.Float64Value()
-	if !gold.Valid || gold.Float64 < float64(cost) {
+	metal, _ := player.Metal.Float64Value()
+	gems, _ := player.Gems.Float64Value()
+	coal, _ := player.Coal.Float64Value()
+	wood, _ := player.Wood.Float64Value()
+	stone, _ := player.Stone.Float64Value()
+	if !gold.Valid || gold.Float64 < float64(costGold) ||
+		!metal.Valid || metal.Float64 < float64(costMetal) ||
+		!gems.Valid || gems.Float64 < float64(costGems) ||
+		!coal.Valid || coal.Float64 < float64(costCoal) ||
+		!wood.Valid || wood.Float64 < float64(costWood) ||
+		!stone.Valid || stone.Float64 < float64(costStone) {
 		return h.router.sendError(c, proto.CodeBuyInsufficientGold, "insufficient gold", &env.Seq)
+	}
+
+	if unit.Faction != "neutral" && unit.Faction != castle.Faction {
+		return h.router.sendError(c, proto.CodeBuyWrongFaction, "unit faction mismatch", &env.Seq)
+	}
+	if unit.Tier > castle.BarracksTier {
+		return h.router.sendError(c, proto.CodeBuyTierLocked, "unit tier locked", &env.Seq)
 	}
 
 	hero, err := h.router.store.Q.GetHeroByPlayer(ctx, c.playerID)
@@ -54,13 +76,38 @@ func (h *BuyHandler) Handle(ctx context.Context, c *Client, env proto.Envelope) 
 	}
 
 	err = h.router.store.WithTx(ctx, func(q *gen.Queries) error {
-		delta, err := numericDelta(-float64(cost))
+		goldDelta, err := numericDelta(-float64(costGold))
 		if err != nil {
 			return err
 		}
-		if err := q.IncrementPlayerGold(ctx, gen.IncrementPlayerGoldParams{
-			ID:    c.playerID,
-			Delta: delta,
+		metalDelta, err := numericDelta(-float64(costMetal))
+		if err != nil {
+			return err
+		}
+		gemsDelta, err := numericDelta(-float64(costGems))
+		if err != nil {
+			return err
+		}
+		coalDelta, err := numericDelta(-float64(costCoal))
+		if err != nil {
+			return err
+		}
+		woodDelta, err := numericDelta(-float64(costWood))
+		if err != nil {
+			return err
+		}
+		stoneDelta, err := numericDelta(-float64(costStone))
+		if err != nil {
+			return err
+		}
+		if err := q.IncrementPlayerResources(ctx, gen.IncrementPlayerResourcesParams{
+			ID:         c.playerID,
+			GoldDelta:  goldDelta,
+			MetalDelta: metalDelta,
+			GemsDelta:  gemsDelta,
+			CoalDelta:  coalDelta,
+			WoodDelta:  woodDelta,
+			StoneDelta: stoneDelta,
 		}); err != nil {
 			return err
 		}
@@ -75,6 +122,7 @@ func (h *BuyHandler) Handle(ctx context.Context, c *Client, env proto.Envelope) 
 	}
 
 	_ = h.router.broadcaster.BroadcastCastleTick(ctx, castle.ID, c.playerID, castle.GoldPerMin, true, env.Seq)
+	_ = h.router.broadcaster.BroadcastResourceState(ctx, c.playerID, env.Seq)
 	_ = h.router.broadcaster.BroadcastHeroState(ctx, hero.ID, env.Seq)
 	return nil
 }

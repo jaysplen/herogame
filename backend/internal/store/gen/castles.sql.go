@@ -7,47 +7,116 @@ package gen
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const getCastleByPlayer = `-- name: GetCastleByPlayer :one
-SELECT id, player_id, node_id, gold_per_min, created_at
+const getCastleByNode = `-- name: GetCastleByNode :one
+SELECT id, player_id, node_id, gold_per_min, faction, defense_bonus, barracks_tier, academy_tier, created_at
 FROM castles
-WHERE player_id = $1
+WHERE node_id = $1
 `
 
-func (q *Queries) GetCastleByPlayer(ctx context.Context, playerID int64) (Castle, error) {
-	row := q.db.QueryRow(ctx, getCastleByPlayer, playerID)
-	var i Castle
+type GetCastleByNodeRow struct {
+	ID           int64              `json:"id"`
+	PlayerID     int64              `json:"player_id"`
+	NodeID       int64              `json:"node_id"`
+	GoldPerMin   int32              `json:"gold_per_min"`
+	Faction      string             `json:"faction"`
+	DefenseBonus int32              `json:"defense_bonus"`
+	BarracksTier int32              `json:"barracks_tier"`
+	AcademyTier  int32              `json:"academy_tier"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) GetCastleByNode(ctx context.Context, nodeID int64) (GetCastleByNodeRow, error) {
+	row := q.db.QueryRow(ctx, getCastleByNode, nodeID)
+	var i GetCastleByNodeRow
 	err := row.Scan(
 		&i.ID,
 		&i.PlayerID,
 		&i.NodeID,
 		&i.GoldPerMin,
+		&i.Faction,
+		&i.DefenseBonus,
+		&i.BarracksTier,
+		&i.AcademyTier,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getCastleByPlayer = `-- name: GetCastleByPlayer :one
+SELECT id, player_id, node_id, gold_per_min, faction, defense_bonus, barracks_tier, academy_tier, created_at
+FROM castles
+WHERE player_id = $1
+`
+
+type GetCastleByPlayerRow struct {
+	ID           int64              `json:"id"`
+	PlayerID     int64              `json:"player_id"`
+	NodeID       int64              `json:"node_id"`
+	GoldPerMin   int32              `json:"gold_per_min"`
+	Faction      string             `json:"faction"`
+	DefenseBonus int32              `json:"defense_bonus"`
+	BarracksTier int32              `json:"barracks_tier"`
+	AcademyTier  int32              `json:"academy_tier"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) GetCastleByPlayer(ctx context.Context, playerID int64) (GetCastleByPlayerRow, error) {
+	row := q.db.QueryRow(ctx, getCastleByPlayer, playerID)
+	var i GetCastleByPlayerRow
+	err := row.Scan(
+		&i.ID,
+		&i.PlayerID,
+		&i.NodeID,
+		&i.GoldPerMin,
+		&i.Faction,
+		&i.DefenseBonus,
+		&i.BarracksTier,
+		&i.AcademyTier,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const listAllCastles = `-- name: ListAllCastles :many
-SELECT id, player_id, node_id, gold_per_min, created_at
+SELECT id, player_id, node_id, gold_per_min, faction, defense_bonus, barracks_tier, academy_tier, created_at
 FROM castles
 ORDER BY id
 `
 
-func (q *Queries) ListAllCastles(ctx context.Context) ([]Castle, error) {
+type ListAllCastlesRow struct {
+	ID           int64              `json:"id"`
+	PlayerID     int64              `json:"player_id"`
+	NodeID       int64              `json:"node_id"`
+	GoldPerMin   int32              `json:"gold_per_min"`
+	Faction      string             `json:"faction"`
+	DefenseBonus int32              `json:"defense_bonus"`
+	BarracksTier int32              `json:"barracks_tier"`
+	AcademyTier  int32              `json:"academy_tier"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) ListAllCastles(ctx context.Context) ([]ListAllCastlesRow, error) {
 	rows, err := q.db.Query(ctx, listAllCastles)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Castle{}
+	items := []ListAllCastlesRow{}
 	for rows.Next() {
-		var i Castle
+		var i ListAllCastlesRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.PlayerID,
 			&i.NodeID,
 			&i.GoldPerMin,
+			&i.Faction,
+			&i.DefenseBonus,
+			&i.BarracksTier,
+			&i.AcademyTier,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -58,4 +127,23 @@ func (q *Queries) ListAllCastles(ctx context.Context) ([]Castle, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const upgradeCastleBuilding = `-- name: UpgradeCastleBuilding :exec
+UPDATE castles
+SET
+    defense_bonus = CASE WHEN $1::text = 'defense' THEN defense_bonus + 1 ELSE defense_bonus END,
+    barracks_tier = CASE WHEN $1::text = 'barracks' THEN barracks_tier + 1 ELSE barracks_tier END,
+    academy_tier = CASE WHEN $1::text = 'academy' THEN academy_tier + 1 ELSE academy_tier END
+WHERE id = $2
+`
+
+type UpgradeCastleBuildingParams struct {
+	BuildingCode string `json:"building_code"`
+	CastleID     int64  `json:"castle_id"`
+}
+
+func (q *Queries) UpgradeCastleBuilding(ctx context.Context, arg UpgradeCastleBuildingParams) error {
+	_, err := q.db.Exec(ctx, upgradeCastleBuilding, arg.BuildingCode, arg.CastleID)
+	return err
 }

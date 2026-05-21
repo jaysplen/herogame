@@ -2,6 +2,7 @@
 export const MsgHello = "hello" as const;
 export const MsgMoveRequest = "move.request" as const;
 export const MsgUnitBuy = "unit.buy" as const;
+export const MsgCastleBuild = "castle.build" as const;
 
 /** Server → client message types. */
 export const MsgHelloAck = "hello.ack" as const;
@@ -10,9 +11,16 @@ export const MsgMoveArrived = "move.arrived" as const;
 export const MsgCombatResolved = "combat.resolved" as const;
 export const MsgCastleTick = "castle.tick" as const;
 export const MsgHeroState = "hero.state" as const;
+export const MsgCreepState = "creep.state" as const;
+export const MsgResourceState = "resource.state" as const;
+export const MsgObjectiveState = "objective.state" as const;
 export const MsgError = "error" as const;
 
-export type ClientMessageType = typeof MsgHello | typeof MsgMoveRequest | typeof MsgUnitBuy;
+export type ClientMessageType =
+  | typeof MsgHello
+  | typeof MsgMoveRequest
+  | typeof MsgUnitBuy
+  | typeof MsgCastleBuild;
 export type ServerMessageType =
   | typeof MsgHelloAck
   | typeof MsgMoveUpdate
@@ -20,4 +28,7 @@ export type ServerMessageType =
   | typeof MsgCombatResolved
   | typeof MsgCastleTick
   | typeof MsgHeroState
+  | typeof MsgCreepState
+  | typeof MsgResourceState
+  | typeof MsgObjectiveState
   | typeof MsgError;

@@ -20,6 +20,7 @@ type Router struct {
 	broadcaster *Broadcaster
 	move        *MoveHandler
 	buy         *BuyHandler
+	build       *BuildHandler
 }
 
 // NewRouter creates a message router.
@@ -32,6 +33,7 @@ func NewRouter(st *store.Store, rdb *redisx.Client, sched *arrivals.Scheduler, h
 	}
 	r.move = &MoveHandler{router: r}
 	r.buy = &BuyHandler{router: r}
+	r.build = &BuildHandler{router: r}
 	return r
 }
 
@@ -42,6 +44,8 @@ func (r *Router) Handle(ctx context.Context, c *Client, env proto.Envelope) erro
 		return r.move.Handle(ctx, c, env)
 	case proto.TypeUnitBuy:
 		return r.buy.Handle(ctx, c, env)
+	case proto.TypeCastleBuild:
+		return r.build.Handle(ctx, c, env)
 	default:
 		return r.sendError(c, proto.CodeUnknownMessage,
 			"unknown message type "+env.Type, &env.Seq)

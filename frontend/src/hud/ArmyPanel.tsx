@@ -1,5 +1,5 @@
 import { send } from "../net/ws";
-import { MsgUnitBuy } from "../proto/types";
+import { MsgCastleBuild, MsgUnitBuy } from "../proto/types";
 import type { HeroUnitStackDTO } from "../proto/messages";
 import { useGameStore } from "../state/store";
 import { useDisplayGoldInt } from "./useDisplayGold";
@@ -26,6 +26,7 @@ function UnitRow({
       <span className="army-actions">
         <button
           type="button"
+          data-testid={`recruit-${stack.unitId}-plus1`}
           disabled={!canBuy1}
           onClick={() => onBuy(stack.unitId, 1)}
           title={`${stack.costGold} gold`}
@@ -34,6 +35,7 @@ function UnitRow({
         </button>
         <button
           type="button"
+          data-testid={`recruit-${stack.unitId}-plus10`}
           disabled={!canBuy10}
           onClick={() => onBuy(stack.unitId, 10)}
           title={`${stack.costGold * 10} gold`}
@@ -50,6 +52,7 @@ export function ArmyPanel() {
   const castleId = useGameStore((s) => s.castle.castleId);
   const bootstrap = useGameStore((s) => s.bootstrap);
   const displayGold = useDisplayGoldInt();
+  const resources = useGameStore((s) => s.player.resources);
 
   const stacks = hero?.units ?? [];
   const shopUnits = bootstrap?.shopUnits ?? [];
@@ -58,6 +61,15 @@ export function ArmyPanel() {
     if (!castleId || !bootstrap) return;
     try {
       send(MsgUnitBuy, { castleId, unitTypeId, qty });
+    } catch {
+      /* disconnected */
+    }
+  };
+
+  const build = (buildingCode: string) => {
+    if (!castleId) return;
+    try {
+      send(MsgCastleBuild, { castleId, buildingCode });
     } catch {
       /* disconnected */
     }
@@ -105,6 +117,23 @@ export function ArmyPanel() {
             ))}
           </ul>
         </>
+      ) : null}
+      <h3 className="hud-subhead">Castle build</h3>
+      <div className="build-menu">
+        <button type="button" onClick={() => build("defense")}>
+          Defense (+1)
+        </button>
+        <button type="button" onClick={() => build("barracks")}>
+          Barracks tier
+        </button>
+        <button type="button" onClick={() => build("academy")}>
+          Academy tier
+        </button>
+      </div>
+      {resources ? (
+        <p className="hud-meta">
+          Build res: W {Math.floor(resources.wood)} · S {Math.floor(resources.stone)}
+        </p>
       ) : null}
     </section>
   );

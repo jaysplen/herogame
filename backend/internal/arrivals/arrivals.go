@@ -81,6 +81,11 @@ func (a *Scheduler) Sweep(ctx context.Context, now time.Time) error {
 	return nil
 }
 
+// ResolveOrder forces resolution of one movement order (e.g. mid-path creep collision).
+func (a *Scheduler) ResolveOrder(ctx context.Context, orderID int64) error {
+	return a.resolveOne(ctx, orderID)
+}
+
 func (a *Scheduler) resolveOne(ctx context.Context, orderID int64) error {
 	var resolved gen.MovementOrder
 	var combatResult *combat.ApplyResult
@@ -106,6 +111,28 @@ func (a *Scheduler) resolveOne(ctx context.Context, orderID int64) error {
 		combatResult, err = combat.ApplyAtNode(ctx, q, order.HeroID, order.ToNodeID)
 		if err != nil {
 			return err
+		}
+		if combatResult == nil {
+			heroesAtNode, err := q.ListHeroesAtNode(ctx, order.ToNodeID)
+			if err != nil {
+				return err
+			}
+			for _, other := range heroesAtNode {
+				if other.ID == order.HeroID {
+					continue
+				}
+				if other.PlayerID == 0 || other.PlayerID == heroPlayerID(order.HeroID, heroesAtNode) {
+					continue
+				}
+				pvp, err := combat.ApplyHeroVsHero(ctx, q, order.HeroID, other.ID)
+				if err != nil {
+					return err
+				}
+				if pvp != nil {
+					combatResult = pvp
+					break
+				}
+			}
 		}
 		resolved = order
 		return nil
@@ -163,6 +190,15 @@ func (a *Scheduler) resolveOne(ctx context.Context, orderID int64) error {
 		slog.Int64("node_id", hero.CurrentNodeID),
 	)
 	return nil
+}
+
+func heroPlayerID(heroID int64, heroes []gen.ListHeroesAtNodeRow) int64 {
+	for _, h := range heroes {
+		if h.ID == heroID {
+			return h.PlayerID
+		}
+	}
+	return 0
 }
 
 var errNoop = errNoopSentinel{}

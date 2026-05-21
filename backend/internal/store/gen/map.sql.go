@@ -33,6 +33,25 @@ func (q *Queries) GetEdge(ctx context.Context, arg GetEdgeParams) (MapEdge, erro
 	return i, err
 }
 
+const getNode = `-- name: GetNode :one
+SELECT id, name, x, y, kind
+FROM map_nodes
+WHERE id = $1
+`
+
+func (q *Queries) GetNode(ctx context.Context, id int64) (MapNode, error) {
+	row := q.db.QueryRow(ctx, getNode, id)
+	var i MapNode
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.X,
+		&i.Y,
+		&i.Kind,
+	)
+	return i, err
+}
+
 const listEdges = `-- name: ListEdges :many
 SELECT id, from_node_id, to_node_id, distance_units
 FROM map_edges

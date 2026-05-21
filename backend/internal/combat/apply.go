@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/herogame/backend/internal/hero"
 	"github.com/herogame/backend/internal/proto"
+	"github.com/herogame/backend/internal/economy"
 	"github.com/herogame/backend/internal/store/gen"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -20,6 +22,163 @@ type ApplyResult struct {
 	PlayerID   int64
 	CastleID   int64
 	GoldPerMin int32
+}
+
+// ApplyHeroVsHero resolves one hero army attacking another on the same node.
+func ApplyHeroVsHero(ctx context.Context, q *gen.Queries, attackerHeroID, defenderHeroID int64) (*ApplyResult, error) {
+	if attackerHeroID == defenderHeroID {
+		return nil, nil
+	}
+	attHero, err := q.GetHero(ctx, attackerHeroID)
+	if err != nil {
+		return nil, err
+	}
+	defHero, err := q.GetHero(ctx, defenderHeroID)
+	if err != nil {
+		return nil, err
+	}
+	if attHero.CurrentNodeID != defHero.CurrentNodeID {
+		return nil, nil
+	}
+
+	attRows, err := q.ListHeroUnitsByHero(ctx, attackerHeroID)
+	if err != nil {
+		return nil, err
+	}
+	defRows, err := q.ListHeroUnitsByHero(ctx, defenderHeroID)
+	if err != nil {
+		return nil, err
+	}
+
+	var attStack []hero.StackUnit
+	for _, row := range attRows {
+		attStack = append(attStack, hero.StackUnit{
+			Qty: int(row.Qty), Attack: int(row.Attack), Defense: int(row.Defense), HP: int(row.Hp),
+		})
+	}
+	var defStack []hero.StackUnit
+	for _, row := range defRows {
+		defStack = append(defStack, hero.StackUnit{
+			Qty: int(row.Qty), Attack: int(row.Attack), Defense: int(row.Defense), HP: int(row.Hp),
+		})
+	}
+
+	attStats, err := HeroCombatStats(ctx, q, attHero)
+	if err != nil {
+		return nil, err
+	}
+	defStats, err := HeroCombatStats(ctx, q, defHero)
+	if err != nil {
+		return nil, err
+	}
+	attacker := StackFromHero(attStats, attStack)
+	defender := StackFromHero(defStats, defStack)
+	result := Resolve(attacker, defender)
+
+	logJSON, err := json.Marshal(result.Log)
+	if err != nil {
+		return nil, err
+	}
+	casualties := 0
+	converted := 0
+	winner := attackerHeroID
+	loser := defenderHeroID
+	loserPlayer := defHero.PlayerID
+	loserNode := defHero.CurrentNodeID
+	if result.Outcome == "loss" {
+		winner = defenderHeroID
+		loser = attackerHeroID
+		loserPlayer = attHero.PlayerID
+		loserNode = attHero.CurrentNodeID
+	}
+
+	loserRows, err := q.ListHeroUnitsByHero(ctx, loser)
+	if err != nil {
+		return nil, err
+	}
+	for _, row := range loserRows {
+		casualties += int(row.Qty)
+	}
+	if err := q.ClearHeroUnits(ctx, loser); err != nil {
+		return nil, err
+	}
+	home, err := q.GetCastleByPlayer(ctx, loserPlayer)
+	if err != nil {
+		return nil, err
+	}
+	if err := q.UpdateHeroNode(ctx, gen.UpdateHeroNodeParams{
+		ID: loser, CurrentNodeID: home.NodeID,
+	}); err != nil {
+		return nil, err
+	}
+	_ = loserNode
+
+	if len(loserRows) > 0 {
+		for _, row := range loserRows {
+			gain := int(row.Qty) * economy.EnemyConversionPercent / 100
+			if gain <= 0 {
+				continue
+			}
+			converted += gain
+			if err := q.AddHeroUnits(ctx, gen.AddHeroUnitsParams{
+				HeroID: winner, UnitID: row.UnitID, Qty: int32(gain),
+			}); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	_, _ = q.InsertCombatLog(ctx, gen.InsertCombatLogParams{
+		HeroID:         winner,
+		CreepID:        pgtype.Int8{Valid: false},
+		EnemyHeroID:    pgtype.Int8{Int64: loser, Valid: true},
+		Outcome:        "win",
+		GoldReward:     0,
+		ConvertedUnits: int32(converted),
+		Log:            logJSON,
+	})
+	if winner == attackerHeroID {
+		_ = q.IncrementPlayerKill(ctx, gen.IncrementPlayerKillParams{
+			KillerPlayerID: attHero.PlayerID,
+			VictimPlayerID: defHero.PlayerID,
+		})
+	} else {
+		_ = q.IncrementPlayerKill(ctx, gen.IncrementPlayerKillParams{
+			KillerPlayerID: defHero.PlayerID,
+			VictimPlayerID: attHero.PlayerID,
+		})
+	}
+
+	winningPlayerID := attHero.PlayerID
+	if winner == defenderHeroID {
+		winningPlayerID = defHero.PlayerID
+	}
+	castle, err := q.GetCastleByPlayer(ctx, winningPlayerID)
+	if err != nil {
+		return nil, err
+	}
+	enemy := loser
+	winnerHero := winner
+	resolvedOutcome := "win"
+	if winner != attackerHeroID {
+		resolvedOutcome = "loss"
+	}
+	return &ApplyResult{
+		Payload: proto.CombatResolvedPayload{
+			HeroID:         winnerHero,
+			CreepID:        0,
+			EnemyHeroID:    &enemy,
+			Outcome:        resolvedOutcome,
+			GoldReward:     0,
+			Casualties:     casualties,
+			ConvertedUnits: converted,
+			Log:            toProtoLog(result.Log),
+		},
+		Respawn:    true,
+		PlayerID:   winningPlayerID,
+		CastleID:   castle.ID,
+		GoldPerMin: castle.GoldPerMin,
+	}, nil
 }
 
 // ApplyAtNode resolves combat when an alive creep occupies nodeID (same DB tx as arrival).
@@ -55,8 +214,27 @@ func ApplyAtNode(ctx context.Context, q *gen.Queries, heroID, nodeID int64) (*Ap
 		})
 	}
 
-	attacker := StackFromHero(hero.Stats{Attack: int(h.Attack), Defense: int(h.Defense)}, stack)
-	defender := StackFromCreep(int(unit.Attack), int(unit.Defense), int(unit.Hp), int(creep.Qty))
+	if creep.GraceUntil.Valid && time.Now().UTC().Before(creep.GraceUntil.Time) {
+		return nil, nil
+	}
+	heroStats, err := HeroCombatStats(ctx, q, h)
+	if err != nil {
+		return nil, err
+	}
+	attacker := StackFromHero(heroStats, stack)
+	defAtk := int(creep.Attack)
+	defDef := int(creep.Defense)
+	defHP := int(creep.Hp)
+	if defAtk == 0 {
+		defAtk = int(unit.Attack)
+	}
+	if defDef == 0 {
+		defDef = int(unit.Defense)
+	}
+	if defHP == 0 {
+		defHP = int(unit.Hp)
+	}
+	defender := StackFromCreep(defAtk, defDef, defHP, int(creep.Qty))
 	result := Resolve(attacker, defender)
 
 	logJSON, err := json.Marshal(result.Log)
@@ -66,17 +244,27 @@ func ApplyAtNode(ctx context.Context, q *gen.Queries, heroID, nodeID int64) (*Ap
 
 	var goldReward int32
 	casualties := 0
+	convertedUnits := 0
 
 	switch result.Outcome {
 	case "win":
 		goldReward = creep.GoldReward
-		delta, err := numericDelta(float64(goldReward))
+		goldDelta, err := numericDelta(float64(goldReward))
 		if err != nil {
 			return nil, err
 		}
-		if err := q.IncrementPlayerGold(ctx, gen.IncrementPlayerGoldParams{
-			ID:    h.PlayerID,
-			Delta: delta,
+		zero, err := numericDelta(0)
+		if err != nil {
+			return nil, err
+		}
+		if err := q.IncrementPlayerResources(ctx, gen.IncrementPlayerResourcesParams{
+			ID:         h.PlayerID,
+			GoldDelta:  goldDelta,
+			MetalDelta: zero,
+			GemsDelta:  zero,
+			CoalDelta:  zero,
+			WoodDelta:  zero,
+			StoneDelta: zero,
 		}); err != nil {
 			return nil, err
 		}
@@ -86,6 +274,16 @@ func ApplyAtNode(ctx context.Context, q *gen.Queries, heroID, nodeID int64) (*Ap
 		casualties, err = applyWinCasualties(ctx, q, heroID, rows, result)
 		if err != nil {
 			return nil, err
+		}
+		convertedUnits = max(0, int(creep.Qty)*economy.EnemyConversionPercent/100)
+		if convertedUnits > 0 {
+			if err := q.AddHeroUnits(ctx, gen.AddHeroUnitsParams{
+				HeroID: heroID,
+				UnitID: creep.UnitID,
+				Qty:    int32(convertedUnits),
+			}); err != nil {
+				return nil, err
+			}
 		}
 	case "loss":
 		castle, err := q.GetCastleByPlayer(ctx, h.PlayerID)
@@ -105,11 +303,13 @@ func ApplyAtNode(ctx context.Context, q *gen.Queries, heroID, nodeID int64) (*Ap
 	}
 
 	_, err = q.InsertCombatLog(ctx, gen.InsertCombatLogParams{
-		HeroID:     heroID,
-		CreepID:    pgtype.Int8{Int64: creep.ID, Valid: true},
-		Outcome:    result.Outcome,
-		GoldReward: goldReward,
-		Log:        logJSON,
+		HeroID:         heroID,
+		CreepID:        pgtype.Int8{Int64: creep.ID, Valid: true},
+		EnemyHeroID:    pgtype.Int8{Valid: false},
+		Outcome:        result.Outcome,
+		GoldReward:     goldReward,
+		ConvertedUnits: int32(convertedUnits),
+		Log:            logJSON,
 	})
 	if err != nil {
 		return nil, err
@@ -127,6 +327,7 @@ func ApplyAtNode(ctx context.Context, q *gen.Queries, heroID, nodeID int64) (*Ap
 			Outcome:    result.Outcome,
 			GoldReward: goldReward,
 			Casualties: casualties,
+			ConvertedUnits: convertedUnits,
 			Log:        toProtoLog(result.Log),
 		},
 		Respawn:    result.Outcome == "loss",

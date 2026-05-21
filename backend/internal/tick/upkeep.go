@@ -48,9 +48,18 @@ func (u *Upkeep) Sweep(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		if err := u.store.Q.IncrementPlayerGold(ctx, gen.IncrementPlayerGoldParams{
-			ID:    h.PlayerID,
-			Delta: n,
+		zero, err := numericFromFloat64(0)
+		if err != nil {
+			return err
+		}
+		if err := u.store.Q.IncrementPlayerResources(ctx, gen.IncrementPlayerResourcesParams{
+			ID:         h.PlayerID,
+			GoldDelta:  n,
+			MetalDelta: zero,
+			GemsDelta:  zero,
+			CoalDelta:  zero,
+			WoodDelta:  zero,
+			StoneDelta: zero,
 		}); err != nil {
 			return err
 		}

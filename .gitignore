@@ -10,6 +10,11 @@ vendor/
 coverage.out
 *.prof
 
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+
 # Node / pnpm
 node_modules/
 .pnpm-store/

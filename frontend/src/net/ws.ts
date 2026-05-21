@@ -9,6 +9,15 @@ const DEFAULT_PLAYER_ID = 1;
 let socket: WebSocket | null = null;
 let seq = 0;
 
+function defaultPlayerId(): number {
+  const fromQuery = new URLSearchParams(window.location.search).get("playerId");
+  const parsed = Number(fromQuery);
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return parsed;
+  }
+  return DEFAULT_PLAYER_ID;
+}
+
 function nextSeq(): number {
   seq += 1;
   return seq;
@@ -19,7 +28,7 @@ export function wsUrl(): string {
   return fromEnv?.trim() || DEFAULT_URL;
 }
 
-export function connect(playerId = DEFAULT_PLAYER_ID): void {
+export function connect(playerId = defaultPlayerId()): void {
   disconnect();
   const store = useGameStore.getState();
   store.reset();

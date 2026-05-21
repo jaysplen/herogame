@@ -1,8 +1,8 @@
-import { useCallback, useMemo, useState } from "react";
-import { Layer, Stage } from "react-konva";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { Group, Layer, Stage } from "react-konva";
 import { send } from "../net/ws";
 import { MsgMoveRequest } from "../proto/types";
-import type { MapNodeDTO } from "../proto/messages";
+import type { CreepStateDTO, MapNodeDTO } from "../proto/messages";
 import { useGameStore, useServerNow } from "../state/store";
 import { Edge } from "./Edge";
 import { HeroToken } from "./HeroToken";
@@ -15,14 +15,73 @@ import {
   uniqueLogicalEdges,
 } from "./geometry";
 
-const STAGE_WIDTH = 820;
-const STAGE_HEIGHT = 620;
+const STAGE_WIDTH = 1200;
+const STAGE_HEIGHT = 820;
+
+function clampChance(n: number): number {
+  return Math.max(5, Math.min(95, Math.round(n)));
+}
+
+function creepPosition(
+  creep: CreepStateDTO,
+  nodesById: Map<number, MapNodeDTO>,
+  nowMs: number,
+): { x: number; y: number } | null {
+  if (creep.fromNodeId && creep.toNodeId && creep.departAt && creep.arriveAt) {
+    const from = nodesById.get(creep.fromNodeId);
+    const to = nodesById.get(creep.toNodeId);
+    if (from && to) {
+      const t = moveProgress(nowMs, creep.departAt, creep.arriveAt);
+      return { x: lerp(from.x, to.x, t), y: lerp(from.y, to.y, t) };
+    }
+  }
+  const node = nodesById.get(creep.nodeId);
+  if (!node) return null;
+  return { x: node.x, y: node.y };
+}
 
 export function MapView() {
+  const deadAnnounced = useRef(false);
   const map = useGameStore((s) => s.map);
   const hero = useGameStore((s) => s.hero);
   const bootstrap = useGameStore((s) => s.bootstrap);
   const inFlight = useGameStore((s) => s.inFlight);
+  const creeps = useGameStore((s) => s.creeps);
+  const objective = useGameStore((s) => s.objective);
+  const resourceNodes = useGameStore((s) => s.resourceNodes);
+  const creepTooltip = useCallback(
+    (c: (typeof creeps)[0]) => {
+      const army = c.qty;
+      const atk = c.attack * c.qty;
+      const def = c.defense * c.qty;
+      const hp = c.hp * c.qty;
+      const heroScore =
+        (hero?.armySize ?? 0) * (hero?.speedEffective ?? 1);
+      const enemyScore = army * (c.attack + c.defense + c.hp / 4);
+      const winChance = clampChance(
+        (heroScore / Math.max(1, heroScore + enemyScore)) * 100,
+      );
+      return `${c.name}: ${army} | A:${atk} D:${def} HP:${hp} | Win~${winChance}%`;
+    },
+    [creeps, hero?.armySize, hero?.speedEffective],
+  );
+
+  const creepByNode = useMemo(() => {
+    const m = new Map<number, string>();
+    for (const c of creeps) {
+      m.set(c.nodeId, creepTooltip(c));
+    }
+    return m;
+  }, [creeps, creepTooltip]);
+
+  const resourceByNode = useMemo(() => {
+    const m = new Map<number, string>();
+    for (const r of resourceNodes) {
+      const owner = r.ownerPlayerId ? `P${r.ownerPlayerId}` : "neutral";
+      m.set(r.nodeId, `${r.resourceType}+${r.perMin}/min (${owner})`);
+    }
+    return m;
+  }, [resourceNodes]);
   const serverNow = useServerNow(33);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -67,6 +126,23 @@ export function MapView() {
     (targetId: number) => {
       if (!hero || !bootstrap) return;
       if (targetId === hero.currentNodeId) return;
+      if (hero.respawnUntil && serverNow < hero.respawnUntil) {
+        const left = Math.ceil((hero.respawnUntil - serverNow) / 1000);
+        const msg = `Hero is dead (${left}s)`;
+        showToast(msg);
+        window.alert(msg);
+        return;
+      }
+      if (hero.respawnUntil && serverNow >= hero.respawnUntil) {
+        if (!deadAnnounced.current) {
+          showToast("Go!");
+          window.alert("Go!");
+          deadAnnounced.current = true;
+        }
+      }
+      if (!hero.respawnUntil || serverNow < hero.respawnUntil) {
+        deadAnnounced.current = false;
+      }
 
       if (inFlight) {
         showToast("Hero is moving");
@@ -88,7 +164,7 @@ export function MapView() {
         showToast("Not connected to server");
       }
     },
-    [hero, bootstrap, inFlight, neighbors, showToast],
+    [hero, bootstrap, inFlight, neighbors, showToast, serverNow, deadAnnounced],
   );
 
   if (!map || !hero) {
@@ -98,6 +174,12 @@ export function MapView() {
   return (
     <div className="map-wrap">
       {toast ? <div className="toast">{toast}</div> : null}
+      {objective ? (
+        <div className="objective-banner">
+          Objective: eliminate enemy hero {objective.targetHeroKills}x · Progress{" "}
+          {objective.enemyHeroKills}/{objective.targetHeroKills}
+        </div>
+      ) : null}
       <Stage width={STAGE_WIDTH} height={STAGE_HEIGHT}>
         <Layer>
           {logicalEdges.map((e) => {
@@ -117,9 +199,24 @@ export function MapView() {
               key={node.id}
               node={node}
               reachable={!inFlight && neighbors.has(node.id)}
+              tooltip={creepByNode.get(node.id) ?? resourceByNode.get(node.id)}
               onSelect={handleNodeSelect}
             />
           ))}
+          {creeps.map((creep) => {
+            const pos = creepPosition(creep, nodesById, serverNow);
+            if (!pos) return null;
+            return (
+              <Group
+                key={`creep-${creep.id}`}
+                x={pos.x + 14}
+                y={pos.y - 14}
+                onMouseEnter={() => showToast(creepTooltip(creep))}
+              >
+                <HeroToken x={0} y={0} />
+              </Group>
+            );
+          })}
           {heroPosition ? (
             <HeroToken x={heroPosition.x} y={heroPosition.y} />
           ) : null}

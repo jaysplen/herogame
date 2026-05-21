@@ -7,76 +7,220 @@ package gen
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getUnit = `-- name: GetUnit :one
-SELECT id, code, name, cost_gold, attack, defense, hp, upkeep_gold_per_hour
+SELECT id, code, name, cost_gold, cost_metal, cost_gems, cost_coal, cost_wood, cost_stone, attack, defense, hp, upkeep_gold_per_hour, faction, tier
 FROM units
 WHERE id = $1
 `
 
-func (q *Queries) GetUnit(ctx context.Context, id int64) (Unit, error) {
+type GetUnitRow struct {
+	ID                int64          `json:"id"`
+	Code              string         `json:"code"`
+	Name              string         `json:"name"`
+	CostGold          int32          `json:"cost_gold"`
+	CostMetal         int32          `json:"cost_metal"`
+	CostGems          int32          `json:"cost_gems"`
+	CostCoal          int32          `json:"cost_coal"`
+	CostWood          int32          `json:"cost_wood"`
+	CostStone         int32          `json:"cost_stone"`
+	Attack            int32          `json:"attack"`
+	Defense           int32          `json:"defense"`
+	Hp                int32          `json:"hp"`
+	UpkeepGoldPerHour pgtype.Numeric `json:"upkeep_gold_per_hour"`
+	Faction           string         `json:"faction"`
+	Tier              int32          `json:"tier"`
+}
+
+func (q *Queries) GetUnit(ctx context.Context, id int64) (GetUnitRow, error) {
 	row := q.db.QueryRow(ctx, getUnit, id)
-	var i Unit
+	var i GetUnitRow
 	err := row.Scan(
 		&i.ID,
 		&i.Code,
 		&i.Name,
 		&i.CostGold,
+		&i.CostMetal,
+		&i.CostGems,
+		&i.CostCoal,
+		&i.CostWood,
+		&i.CostStone,
 		&i.Attack,
 		&i.Defense,
 		&i.Hp,
 		&i.UpkeepGoldPerHour,
+		&i.Faction,
+		&i.Tier,
 	)
 	return i, err
 }
 
 const getUnitByCode = `-- name: GetUnitByCode :one
-SELECT id, code, name, cost_gold, attack, defense, hp, upkeep_gold_per_hour
+SELECT id, code, name, cost_gold, cost_metal, cost_gems, cost_coal, cost_wood, cost_stone, attack, defense, hp, upkeep_gold_per_hour, faction, tier
 FROM units
 WHERE code = $1
 `
 
-func (q *Queries) GetUnitByCode(ctx context.Context, code string) (Unit, error) {
+type GetUnitByCodeRow struct {
+	ID                int64          `json:"id"`
+	Code              string         `json:"code"`
+	Name              string         `json:"name"`
+	CostGold          int32          `json:"cost_gold"`
+	CostMetal         int32          `json:"cost_metal"`
+	CostGems          int32          `json:"cost_gems"`
+	CostCoal          int32          `json:"cost_coal"`
+	CostWood          int32          `json:"cost_wood"`
+	CostStone         int32          `json:"cost_stone"`
+	Attack            int32          `json:"attack"`
+	Defense           int32          `json:"defense"`
+	Hp                int32          `json:"hp"`
+	UpkeepGoldPerHour pgtype.Numeric `json:"upkeep_gold_per_hour"`
+	Faction           string         `json:"faction"`
+	Tier              int32          `json:"tier"`
+}
+
+func (q *Queries) GetUnitByCode(ctx context.Context, code string) (GetUnitByCodeRow, error) {
 	row := q.db.QueryRow(ctx, getUnitByCode, code)
-	var i Unit
+	var i GetUnitByCodeRow
 	err := row.Scan(
 		&i.ID,
 		&i.Code,
 		&i.Name,
 		&i.CostGold,
+		&i.CostMetal,
+		&i.CostGems,
+		&i.CostCoal,
+		&i.CostWood,
+		&i.CostStone,
 		&i.Attack,
 		&i.Defense,
 		&i.Hp,
 		&i.UpkeepGoldPerHour,
+		&i.Faction,
+		&i.Tier,
 	)
 	return i, err
 }
 
 const listUnits = `-- name: ListUnits :many
-SELECT id, code, name, cost_gold, attack, defense, hp, upkeep_gold_per_hour
+SELECT id, code, name, cost_gold, cost_metal, cost_gems, cost_coal, cost_wood, cost_stone, attack, defense, hp, upkeep_gold_per_hour, faction, tier
 FROM units
 ORDER BY id
 `
 
-func (q *Queries) ListUnits(ctx context.Context) ([]Unit, error) {
+type ListUnitsRow struct {
+	ID                int64          `json:"id"`
+	Code              string         `json:"code"`
+	Name              string         `json:"name"`
+	CostGold          int32          `json:"cost_gold"`
+	CostMetal         int32          `json:"cost_metal"`
+	CostGems          int32          `json:"cost_gems"`
+	CostCoal          int32          `json:"cost_coal"`
+	CostWood          int32          `json:"cost_wood"`
+	CostStone         int32          `json:"cost_stone"`
+	Attack            int32          `json:"attack"`
+	Defense           int32          `json:"defense"`
+	Hp                int32          `json:"hp"`
+	UpkeepGoldPerHour pgtype.Numeric `json:"upkeep_gold_per_hour"`
+	Faction           string         `json:"faction"`
+	Tier              int32          `json:"tier"`
+}
+
+func (q *Queries) ListUnits(ctx context.Context) ([]ListUnitsRow, error) {
 	rows, err := q.db.Query(ctx, listUnits)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Unit{}
+	items := []ListUnitsRow{}
 	for rows.Next() {
-		var i Unit
+		var i ListUnitsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Code,
 			&i.Name,
 			&i.CostGold,
+			&i.CostMetal,
+			&i.CostGems,
+			&i.CostCoal,
+			&i.CostWood,
+			&i.CostStone,
 			&i.Attack,
 			&i.Defense,
 			&i.Hp,
 			&i.UpkeepGoldPerHour,
+			&i.Faction,
+			&i.Tier,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listUnitsByFactionTier = `-- name: ListUnitsByFactionTier :many
+SELECT id, code, name, cost_gold, cost_metal, cost_gems, cost_coal, cost_wood, cost_stone, attack, defense, hp, upkeep_gold_per_hour, faction, tier
+FROM units
+WHERE (faction = $1 OR faction = 'neutral')
+  AND tier <= $2
+ORDER BY tier, id
+`
+
+type ListUnitsByFactionTierParams struct {
+	Faction string `json:"faction"`
+	MaxTier int32  `json:"max_tier"`
+}
+
+type ListUnitsByFactionTierRow struct {
+	ID                int64          `json:"id"`
+	Code              string         `json:"code"`
+	Name              string         `json:"name"`
+	CostGold          int32          `json:"cost_gold"`
+	CostMetal         int32          `json:"cost_metal"`
+	CostGems          int32          `json:"cost_gems"`
+	CostCoal          int32          `json:"cost_coal"`
+	CostWood          int32          `json:"cost_wood"`
+	CostStone         int32          `json:"cost_stone"`
+	Attack            int32          `json:"attack"`
+	Defense           int32          `json:"defense"`
+	Hp                int32          `json:"hp"`
+	UpkeepGoldPerHour pgtype.Numeric `json:"upkeep_gold_per_hour"`
+	Faction           string         `json:"faction"`
+	Tier              int32          `json:"tier"`
+}
+
+func (q *Queries) ListUnitsByFactionTier(ctx context.Context, arg ListUnitsByFactionTierParams) ([]ListUnitsByFactionTierRow, error) {
+	rows, err := q.db.Query(ctx, listUnitsByFactionTier, arg.Faction, arg.MaxTier)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListUnitsByFactionTierRow{}
+	for rows.Next() {
+		var i ListUnitsByFactionTierRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Code,
+			&i.Name,
+			&i.CostGold,
+			&i.CostMetal,
+			&i.CostGems,
+			&i.CostCoal,
+			&i.CostWood,
+			&i.CostStone,
+			&i.Attack,
+			&i.Defense,
+			&i.Hp,
+			&i.UpkeepGoldPerHour,
+			&i.Faction,
+			&i.Tier,
 		); err != nil {
 			return nil, err
 		}

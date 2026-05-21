@@ -8,7 +8,12 @@ const (
 	CodeMoveInvalidEdge     = "MOVE_INVALID_EDGE"
 	CodeMoveHeroInFlight    = "MOVE_HERO_IN_FLIGHT"
 	CodeMoveHeroRespawning  = "MOVE_HERO_RESPAWNING"
+	CodeMoveGracePeriod     = "MOVE_GRACE_PERIOD"
 	CodeBuyInsufficientGold = "BUY_INSUFFICIENT_GOLD"
+	CodeBuyTierLocked       = "BUY_TIER_LOCKED"
+	CodeBuyWrongFaction     = "BUY_WRONG_FACTION"
+	CodeBuildInvalid        = "BUILD_INVALID"
+	CodeBuildInsufficientResources = "BUILD_INSUFFICIENT_RESOURCES"
 	CodeUnknownMessage      = "UNKNOWN_MESSAGE"
 	CodeInternal            = "INTERNAL_ERROR"
 )

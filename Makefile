@@ -1,6 +1,6 @@
 # herogame dev tooling — see docs/architecture.md §12
 
-.PHONY: dev down logs ps migrate migrate-status config
+.PHONY: dev down logs ps migrate migrate-status config server frontend
 
 # Load .env when present (copy from .env.example)
 ifneq (,$(wildcard .env))
@@ -10,8 +10,18 @@ endif
 
 DATABASE_URL ?= postgres://herogame:herogame@localhost:5432/herogame?sslmode=disable
 REDIS_URL ?= redis://localhost:6379/0
-GOOSE ?= goose
 GOOSE_DIR ?= backend/migrations
+# Prefer goose on PATH; fall back to $(go env GOPATH)/bin after `go install .../goose@latest`
+GOOSE ?= $(shell command -v goose 2>/dev/null || echo "$(shell go env GOPATH)/bin/goose")
+export PATH := $(shell go env GOPATH)/bin:$(PATH)
+
+## server: run game server on :8080 (requires make dev for Postgres/Redis)
+server:
+	bash scripts/dev-backend.sh
+
+## frontend: Vite dev server on :5173
+frontend:
+	cd frontend && npm run dev -- --host 0.0.0.0
 
 ## dev: start Postgres + Redis, wait for health, then run migrations if available
 dev:

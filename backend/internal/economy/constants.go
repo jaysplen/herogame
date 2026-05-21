@@ -17,4 +17,10 @@ const (
 	BanditCampQty             = 50
 	BanditCampGoldReward      = 500
 	RespawnLockoutSeconds     = 60
+	SpawnGraceSeconds         = 12
+	ObjectiveHeroKills        = 5
+	CreepSpeedUnitsDefault    = 4
+	CreepCollisionDistance    = 40
+	CreepSweepSeconds         = 1
+	EnemyConversionPercent    = 20
 )

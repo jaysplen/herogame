@@ -84,6 +84,13 @@ func TestMoveRequestBroadcastToTwoClients(t *testing.T) {
 	defer srv.Close()
 	wsURL := "ws" + strings.TrimPrefix(srv.URL, "http")
 
+	ctx := context.Background()
+	_, _ = st.Pool().Exec(ctx, `
+		UPDATE heroes SET current_node_id = CASE WHEN id = 1 THEN 1 ELSE 6 END;
+		UPDATE heroes SET spawn_grace_until = to_timestamp(0);
+		DELETE FROM movement_orders;
+	`)
+
 	conn1 := dialHello(t, wsURL, 1)
 	defer conn1.Close()
 	conn2 := dialHello(t, wsURL, 2)
@@ -100,6 +107,12 @@ func TestMoveRequestBroadcastToTwoClients(t *testing.T) {
 			var env proto.Envelope
 			if err := conn.ReadJSON(&env); err != nil {
 				t.Errorf("%s read: %v", label, err)
+				return
+			}
+			if env.Type == proto.TypeError {
+				var ep proto.ErrorPayload
+				_ = json.Unmarshal(env.Payload, &ep)
+				t.Errorf("%s got error envelope: %+v", label, ep)
 				return
 			}
 			if env.Type == proto.TypeMoveUpdate {
@@ -136,7 +149,7 @@ func TestMoveRequestBroadcastToTwoClients(t *testing.T) {
 	}
 
 	// reset hero position for other tests
-	ctx := context.Background()
+	ctx = context.Background()
 	_, _ = st.Pool().Exec(ctx, `UPDATE heroes SET current_node_id = 1 WHERE id = 1`)
 	_, _ = st.Pool().Exec(ctx, `DELETE FROM movement_orders WHERE hero_id = 1 AND status = 'in_flight'`)
 	_ = rdb.Underlying().Del(ctx, "arrivals:zset")

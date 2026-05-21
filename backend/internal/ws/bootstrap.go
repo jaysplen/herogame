@@ -40,8 +40,6 @@ func BuildHelloAck(ctx context.Context, st *store.Store, rdb *redisx.Client, pla
 		return proto.HelloAckPayload{}, err
 	}
 
-	gold, _ := player.Gold.Float64Value()
-
 	inFlight, err := activeMovePayload(ctx, st, h.ID)
 	if err != nil {
 		return proto.HelloAckPayload{}, err
@@ -52,22 +50,48 @@ func BuildHelloAck(ctx context.Context, st *store.Store, rdb *redisx.Client, pla
 		return proto.HelloAckPayload{}, err
 	}
 
-	catalog, err := st.Q.ListUnits(ctx)
+	castles, err := st.Q.ListAllCastles(ctx)
+	if err != nil {
+		return proto.HelloAckPayload{}, err
+	}
+	creeps, err := st.Q.ListAliveCreeps(ctx)
+	if err != nil {
+		return proto.HelloAckPayload{}, err
+	}
+	resourceNodes, err := st.Q.ListResourceNodes(ctx)
+	if err != nil {
+		return proto.HelloAckPayload{}, err
+	}
+	objective, err := objectiveState(ctx, st, playerID)
 	if err != nil {
 		return proto.HelloAckPayload{}, err
 	}
 
+	catalog, err := st.Q.ListUnitsByFactionTier(ctx, gen.ListUnitsByFactionTierParams{
+		Faction: castle.Faction,
+		MaxTier: castle.BarracksTier,
+	})
+	if err != nil {
+		return proto.HelloAckPayload{}, err
+	}
+
+	resources := buildResourceBag(player)
 	return proto.HelloAckPayload{
 		PlayerID: playerID,
 		HeroID:   h.ID,
 		CastleID: castle.ID,
-		Gold:     gold.Float64,
+		Gold:     resources.Gold,
+		Resources: resources,
 		MapSnapshot: proto.MapSnapshot{
 			Nodes: mapNodesToDTO(nodes),
 			Edges: mapEdgesToDTO(edges),
 		},
 		HeroState: heroState,
 		ShopUnits: mapShopUnits(catalog),
+		Castles: mapCastles(castles),
+		Creeps: mapCreeps(creeps),
+		ResourceNodes: mapResourceNodes(resourceNodes),
+		Objective: objective,
 		InFlight:  inFlight,
 	}, nil
 }

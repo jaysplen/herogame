@@ -29,6 +29,8 @@ Example:
 
 ## 2026-05-20
 
+- EPIC-ROADMAP-001 — Implemented strategy-loop expansion on `feature/epic-singleplayer-world`: larger world graph, roaming creeps, resource nodes/income, castle progression/build menu, grace gating, creep/hero combat enrichments, objective tracking (5 hero kills), and player-scoped WS broadcast seam for multiplayer transition.
+- BACKLOG-006 — Playwright smoke: connect → recruit → march → combat modal; E2E DOM controls (`VITE_E2E=1`); backend on `:18080` for isolated webServer; CI `e2e` job.
 - BACKLOG-004 — `hero.state.units` and `hello.ack.shopUnits`; army HUD driven by server unit stacks.
 - BACKLOG-003 — `hero.state.respawnUntil` (server ms) from Redis; client drops local respawn timer.
 - BACKLOG-002 — `hello.ack` includes optional `inFlight` for reconnect interpolation; frontend store applies on bootstrap.

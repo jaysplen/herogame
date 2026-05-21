@@ -34,6 +34,7 @@ func BuildHeroState(ctx context.Context, st *store.Store, rdb *redisx.Client, he
 
 	state := proto.HeroStatePayload{
 		HeroID:            h.ID,
+		PlayerID:          h.PlayerID,
 		CurrentNodeID:     h.CurrentNodeID,
 		ArmySize:          armySize,
 		Units:             mapHeroUnitStacks(units),

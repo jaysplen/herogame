@@ -47,12 +47,6 @@ This is the shared work board for the project. Read [architecture.md](./architec
 - Acceptance: Documented target army size or tuned seed (gold/qty) so a new player can win in one session.
 - Doc refs: [poc_review.md §5](./poc_review.md#5-balance-findings)
 
-### [BACKLOG-006] Playwright visual smoke script
-- Owner: TBD
-- Depends on: GAMMA-003
-- Acceptance: Headless browser runs connect → buy → move → sees combat modal.
-- Doc refs: [poc_review.md §2](./poc_review.md#2-scripted-playthrough)
-
 ---
 
 ## In Progress
@@ -68,6 +62,18 @@ _(empty — agents move tasks here when acceptance criteria pass)_
 ---
 
 ## Done
+
+### [EPIC-ROADMAP-001] World expansion strategy loop (single-player first)
+- Owner: Agent
+- Depends on: BACKLOG-006
+- Acceptance: M1-M7 roadmap implemented on `feature/epic-singleplayer-world` with expanded map, roaming creeps, multi-resource economy, castle build progression, grace periods, combat intel/objective, and player-scoped broadcast seams.
+- Files: backend migrations/queries/ws/tick/combat/proto; frontend store/map/hud/proto/e2e; docs/dev setup/readmes.
+
+### [BACKLOG-006] Playwright visual smoke script
+- Owner: Agent
+- Depends on: GAMMA-003
+- Acceptance: Headless `connect → buy → move → combat modal` via `VITE_E2E=1` DOM controls; CI `e2e` job.
+- Files: `frontend/e2e/smoke.spec.ts`, `frontend/playwright.config.ts`, `frontend/src/e2e/E2EControls.tsx`, `scripts/e2e-backend.sh`, `.github/workflows/ci.yml`
 
 ### [BACKLOG-004] hero_units[] in bootstrap / hero.state
 - Owner: Agent

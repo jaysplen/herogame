@@ -16,22 +16,44 @@ type Engine struct {
 	store    *store.Store
 	redis    *redisx.Client
 	log      *slog.Logger
-	arrivals *arrivals.Scheduler
-	economy  *Economy
-	upkeep   *Upkeep
-	cancel   context.CancelFunc
+	arrivals    *arrivals.Scheduler
+	economy     *Economy
+	upkeep      *Upkeep
+	creeps      *Creeps
+	resources   *Resources
+	collisions  *Collisions
+	follow      arrivals.SchedulerFollowUp
+	creepBC     creepSnapshotBroadcaster
+	cancel      context.CancelFunc
+}
+
+// creepSnapshotBroadcaster pushes neutral army positions (implemented by ws.EventBus).
+type creepSnapshotBroadcaster interface {
+	BroadcastCreepState(ctx context.Context, seq int64) error
 }
 
 // NewEngine constructs a tick engine. bus receives move.arrived broadcasts (e.g. ws.Hub).
 func NewEngine(st *store.Store, rdb *redisx.Client, bus arrivals.Broadcaster, log *slog.Logger) *Engine {
-	return &Engine{
-		store:    st,
-		redis:    rdb,
-		log:      log,
-		arrivals: arrivals.New(st, rdb, bus, log),
-		economy:  NewEconomy(st, log),
-		upkeep:   NewUpkeep(st, log),
+	var follow arrivals.SchedulerFollowUp
+	if f, ok := bus.(arrivals.SchedulerFollowUp); ok {
+		follow = f
 	}
+	e := &Engine{
+		store:     st,
+		redis:     rdb,
+		log:       log,
+		arrivals:  arrivals.New(st, rdb, bus, log),
+		economy:   NewEconomy(st, log),
+		upkeep:    NewUpkeep(st, log),
+		creeps:    NewCreeps(st, log),
+		resources: NewResources(st, log),
+		follow:    follow,
+	}
+	e.collisions = NewCollisions(st, e.arrivals, log)
+	if cb, ok := bus.(creepSnapshotBroadcaster); ok {
+		e.creepBC = cb
+	}
+	return e
 }
 
 // Arrivals exposes the arrivals scheduler for move handlers (BETA-003).
@@ -103,7 +125,19 @@ func (e *Engine) tick(ctx context.Context) {
 	if err := e.economy.Sweep(ctx); err != nil {
 		e.log.Error("economy sweep", slog.String("error", err.Error()))
 	}
+	if err := e.resources.Sweep(ctx); err != nil {
+		e.log.Error("resource sweep", slog.String("error", err.Error()))
+	}
 	if err := e.upkeep.Sweep(ctx); err != nil {
 		e.log.Error("upkeep sweep", slog.String("error", err.Error()))
+	}
+	if err := e.creeps.Sweep(ctx, now); err != nil {
+		e.log.Error("creep sweep", slog.String("error", err.Error()))
+	}
+	if err := e.collisions.Sweep(ctx, now); err != nil {
+		e.log.Error("collision sweep", slog.String("error", err.Error()))
+	}
+	if e.creepBC != nil {
+		_ = e.creepBC.BroadcastCreepState(ctx, 0)
 	}
 }

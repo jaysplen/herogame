@@ -58,3 +58,25 @@ func (h *Hub) Broadcast(env proto.Envelope) {
 		}
 	}
 }
+
+// BroadcastToPlayer sends an envelope only to sessions of one player.
+func (h *Hub) BroadcastToPlayer(playerID int64, env proto.Envelope) {
+	data, err := json.Marshal(env)
+	if err != nil {
+		h.logger.Error("broadcast marshal", slog.String("error", err.Error()))
+		return
+	}
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	for c := range h.clients {
+		if c.playerID != playerID {
+			continue
+		}
+		select {
+		case c.send <- data:
+		default:
+			h.logger.Warn("client send buffer full, dropping message",
+				slog.Int64("player_id", c.playerID))
+		}
+	}
+}

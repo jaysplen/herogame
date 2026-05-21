@@ -3,6 +3,7 @@ package ws
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
@@ -54,6 +55,15 @@ func (g *Gateway) Hub() *Hub {
 	return g.hub
 }
 
+func parseViewAsPlayerID(raw string) int64 {
+	if raw == "" {
+		return 0
+	}
+	var id int64
+	_, _ = fmt.Sscanf(raw, "%d", &id)
+	return id
+}
+
 // ServeHTTP upgrades GET /ws and runs the connection lifecycle.
 func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -66,6 +76,7 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		hub:    g.hub,
 		conn:   conn,
 		send:   make(chan []byte, sendBufferSize),
+		viewForPlayerID: parseViewAsPlayerID(r.URL.Query().Get("viewAsPlayer")),
 		logger: g.logger,
 	}
 	g.hub.Register(client)
@@ -111,6 +122,9 @@ func (g *Gateway) runConnection(ctx context.Context, c *Client) {
 	}
 
 	c.playerID = playerID
+	if c.viewForPlayerID <= 0 {
+		c.viewForPlayerID = playerID
+	}
 	c.enqueue(ackData)
 	_ = c.conn.SetReadDeadline(time.Now().Add(pongWait))
 

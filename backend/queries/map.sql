@@ -4,6 +4,11 @@ FROM map_edges
 WHERE from_node_id = $1
   AND to_node_id = $2;
 
+-- name: GetNode :one
+SELECT id, name, x, y, kind
+FROM map_nodes
+WHERE id = $1;
+
 -- name: ListNodes :many
 SELECT id, name, x, y, kind
 FROM map_nodes

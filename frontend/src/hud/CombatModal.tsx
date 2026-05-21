@@ -10,7 +10,12 @@ export function CombatModal({ combat, open, onClose }: CombatModalProps) {
   if (!open || !combat) return null;
 
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true">
+    <div
+      className="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      data-testid="combat-modal"
+    >
       <div className="modal">
         <header className="modal-header">
           <h2>
@@ -26,6 +31,9 @@ export function CombatModal({ combat, open, onClose }: CombatModalProps) {
         <p className="modal-summary">
           Casualties: {combat.casualties}
           {combat.goldReward > 0 ? ` · Gold +${combat.goldReward}` : null}
+          {combat.convertedUnits > 0
+            ? ` · Converted +${combat.convertedUnits}`
+            : null}
         </p>
         <div className="modal-log">
           <table>

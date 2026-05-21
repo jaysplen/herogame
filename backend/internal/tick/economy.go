@@ -27,13 +27,22 @@ func (e *Economy) Sweep(ctx context.Context) error {
 	}
 	for _, c := range castles {
 		delta := float64(c.GoldPerMin) / 60.0
-		n, err := numericFromFloat64(delta)
+		goldN, err := numericFromFloat64(delta)
 		if err != nil {
 			return err
 		}
-		if err := e.store.Q.IncrementPlayerGold(ctx, gen.IncrementPlayerGoldParams{
-			ID:    c.PlayerID,
-			Delta: n,
+		zero, err := numericFromFloat64(0)
+		if err != nil {
+			return err
+		}
+		if err := e.store.Q.IncrementPlayerResources(ctx, gen.IncrementPlayerResourcesParams{
+			ID:         c.PlayerID,
+			GoldDelta:  goldN,
+			MetalDelta: zero,
+			GemsDelta:  zero,
+			CoalDelta:  zero,
+			WoodDelta:  zero,
+			StoneDelta: zero,
 		}); err != nil {
 			return err
 		}

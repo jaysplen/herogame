@@ -17,9 +17,10 @@ export interface NodeProps {
   node: MapNodeDTO;
   reachable: boolean;
   onSelect: (nodeId: number) => void;
+  tooltip?: string;
 }
 
-export function Node({ node, reachable, onSelect }: NodeProps) {
+export function Node({ node, reachable, onSelect, tooltip }: NodeProps) {
   const colors = colorsFor(node.kind);
 
   return (
@@ -37,6 +38,17 @@ export function Node({ node, reachable, onSelect }: NodeProps) {
         shadowBlur={reachable ? 8 : 0}
         shadowColor="#f9dc5c"
       />
+      {tooltip ? (
+        <Text
+          text={tooltip}
+          fontSize={10}
+          fill="#f4a261"
+          width={150}
+          offsetX={75}
+          y={-RADIUS - 18}
+          align="center"
+        />
+      ) : null}
       <Text
         text={node.name}
         fontSize={11}

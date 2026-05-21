@@ -11,6 +11,14 @@ export function HeroPanel() {
     return Math.ceil((until - serverNow) / 1000);
   }, [hero?.respawnUntil, serverNow]);
 
+  const spawnMessage = useMemo(() => {
+    if (!hero?.respawnUntil) return null;
+    if (serverNow < hero.respawnUntil) {
+      return `Hero is dead (${Math.ceil((hero.respawnUntil - serverNow) / 1000)}s)`;
+    }
+    return "Go!";
+  }, [hero?.respawnUntil, serverNow]);
+
   if (!hero) {
     return (
       <section className="hud-panel">
@@ -28,6 +36,7 @@ export function HeroPanel() {
           Respawning {respawnSecondsLeft}s
         </span>
       ) : null}
+      {spawnMessage ? <p className="spawn-msg">{spawnMessage}</p> : null}
       <dl className="hero-stats">
         <div>
           <dt>Speed</dt>

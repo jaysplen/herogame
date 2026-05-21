@@ -9,32 +9,46 @@ import (
 )
 
 type Castle struct {
-	ID         int64              `json:"id"`
-	PlayerID   int64              `json:"player_id"`
-	NodeID     int64              `json:"node_id"`
-	GoldPerMin int32              `json:"gold_per_min"`
-	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	ID           int64              `json:"id"`
+	PlayerID     int64              `json:"player_id"`
+	NodeID       int64              `json:"node_id"`
+	GoldPerMin   int32              `json:"gold_per_min"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	Faction      string             `json:"faction"`
+	DefenseBonus int32              `json:"defense_bonus"`
+	BarracksTier int32              `json:"barracks_tier"`
+	AcademyTier  int32              `json:"academy_tier"`
+}
+
+type CastleBuilding struct {
+	ID           int64  `json:"id"`
+	CastleID     int64  `json:"castle_id"`
+	BuildingCode string `json:"building_code"`
+	Level        int32  `json:"level"`
 }
 
 type CombatLog struct {
-	ID         int64              `json:"id"`
-	HeroID     int64              `json:"hero_id"`
-	CreepID    pgtype.Int8        `json:"creep_id"`
-	Outcome    string             `json:"outcome"`
-	GoldReward int32              `json:"gold_reward"`
-	Log        []byte             `json:"log"`
-	ResolvedAt pgtype.Timestamptz `json:"resolved_at"`
+	ID             int64              `json:"id"`
+	HeroID         int64              `json:"hero_id"`
+	CreepID        pgtype.Int8        `json:"creep_id"`
+	Outcome        string             `json:"outcome"`
+	GoldReward     int32              `json:"gold_reward"`
+	Log            []byte             `json:"log"`
+	ResolvedAt     pgtype.Timestamptz `json:"resolved_at"`
+	EnemyHeroID    pgtype.Int8        `json:"enemy_hero_id"`
+	ConvertedUnits int32              `json:"converted_units"`
 }
 
 type Hero struct {
-	ID            int64              `json:"id"`
-	PlayerID      int64              `json:"player_id"`
-	Name          string             `json:"name"`
-	CurrentNodeID int64              `json:"current_node_id"`
-	BaseSpeed     int32              `json:"base_speed"`
-	Attack        int32              `json:"attack"`
-	Defense       int32              `json:"defense"`
-	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	ID              int64              `json:"id"`
+	PlayerID        int64              `json:"player_id"`
+	Name            string             `json:"name"`
+	CurrentNodeID   int64              `json:"current_node_id"`
+	BaseSpeed       int32              `json:"base_speed"`
+	Attack          int32              `json:"attack"`
+	Defense         int32              `json:"defense"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	SpawnGraceUntil pgtype.Timestamptz `json:"spawn_grace_until"`
 }
 
 type HeroUnit struct {
@@ -70,13 +84,22 @@ type MovementOrder struct {
 }
 
 type NeutralCreep struct {
-	ID         int64  `json:"id"`
-	NodeID     int64  `json:"node_id"`
-	Name       string `json:"name"`
-	UnitID     int64  `json:"unit_id"`
-	Qty        int32  `json:"qty"`
-	Alive      bool   `json:"alive"`
-	GoldReward int32  `json:"gold_reward"`
+	ID         int64              `json:"id"`
+	NodeID     int64              `json:"node_id"`
+	Name       string             `json:"name"`
+	UnitID     int64              `json:"unit_id"`
+	Qty        int32              `json:"qty"`
+	Alive      bool               `json:"alive"`
+	GoldReward int32              `json:"gold_reward"`
+	FromNodeID pgtype.Int8        `json:"from_node_id"`
+	ToNodeID   pgtype.Int8        `json:"to_node_id"`
+	DepartAt   pgtype.Timestamptz `json:"depart_at"`
+	ArriveAt   pgtype.Timestamptz `json:"arrive_at"`
+	SpeedUnits int32              `json:"speed_units"`
+	Attack     int32              `json:"attack"`
+	Defense    int32              `json:"defense"`
+	Hp         int32              `json:"hp"`
+	GraceUntil pgtype.Timestamptz `json:"grace_until"`
 }
 
 type Player struct {
@@ -84,6 +107,26 @@ type Player struct {
 	Name      string             `json:"name"`
 	Gold      pgtype.Numeric     `json:"gold"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	Metal     pgtype.Numeric     `json:"metal"`
+	Gems      pgtype.Numeric     `json:"gems"`
+	Coal      pgtype.Numeric     `json:"coal"`
+	Wood      pgtype.Numeric     `json:"wood"`
+	Stone     pgtype.Numeric     `json:"stone"`
+}
+
+type PlayerKill struct {
+	KillerPlayerID int64 `json:"killer_player_id"`
+	VictimPlayerID int64 `json:"victim_player_id"`
+	Kills          int32 `json:"kills"`
+}
+
+type ResourceNode struct {
+	ID            int64              `json:"id"`
+	NodeID        int64              `json:"node_id"`
+	ResourceType  string             `json:"resource_type"`
+	PerMin        int32              `json:"per_min"`
+	OwnerPlayerID pgtype.Int8        `json:"owner_player_id"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 }
 
 type Unit struct {
@@ -95,4 +138,11 @@ type Unit struct {
 	Defense           int32          `json:"defense"`
 	Hp                int32          `json:"hp"`
 	UpkeepGoldPerHour pgtype.Numeric `json:"upkeep_gold_per_hour"`
+	CostMetal         int32          `json:"cost_metal"`
+	CostGems          int32          `json:"cost_gems"`
+	CostCoal          int32          `json:"cost_coal"`
+	CostWood          int32          `json:"cost_wood"`
+	CostStone         int32          `json:"cost_stone"`
+	Faction           string         `json:"faction"`
+	Tier              int32          `json:"tier"`
 }

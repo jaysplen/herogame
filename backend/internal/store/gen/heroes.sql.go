@@ -40,14 +40,26 @@ func (q *Queries) ClearHeroUnits(ctx context.Context, heroID int64) error {
 }
 
 const getHero = `-- name: GetHero :one
-SELECT id, player_id, name, current_node_id, base_speed, attack, defense, created_at
+SELECT id, player_id, name, current_node_id, base_speed, attack, defense, spawn_grace_until, created_at
 FROM heroes
 WHERE id = $1
 `
 
-func (q *Queries) GetHero(ctx context.Context, id int64) (Hero, error) {
+type GetHeroRow struct {
+	ID              int64              `json:"id"`
+	PlayerID        int64              `json:"player_id"`
+	Name            string             `json:"name"`
+	CurrentNodeID   int64              `json:"current_node_id"`
+	BaseSpeed       int32              `json:"base_speed"`
+	Attack          int32              `json:"attack"`
+	Defense         int32              `json:"defense"`
+	SpawnGraceUntil pgtype.Timestamptz `json:"spawn_grace_until"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) GetHero(ctx context.Context, id int64) (GetHeroRow, error) {
 	row := q.db.QueryRow(ctx, getHero, id)
-	var i Hero
+	var i GetHeroRow
 	err := row.Scan(
 		&i.ID,
 		&i.PlayerID,
@@ -56,21 +68,34 @@ func (q *Queries) GetHero(ctx context.Context, id int64) (Hero, error) {
 		&i.BaseSpeed,
 		&i.Attack,
 		&i.Defense,
+		&i.SpawnGraceUntil,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getHeroByPlayer = `-- name: GetHeroByPlayer :one
-SELECT id, player_id, name, current_node_id, base_speed, attack, defense, created_at
+SELECT id, player_id, name, current_node_id, base_speed, attack, defense, spawn_grace_until, created_at
 FROM heroes
 WHERE player_id = $1
 LIMIT 1
 `
 
-func (q *Queries) GetHeroByPlayer(ctx context.Context, playerID int64) (Hero, error) {
+type GetHeroByPlayerRow struct {
+	ID              int64              `json:"id"`
+	PlayerID        int64              `json:"player_id"`
+	Name            string             `json:"name"`
+	CurrentNodeID   int64              `json:"current_node_id"`
+	BaseSpeed       int32              `json:"base_speed"`
+	Attack          int32              `json:"attack"`
+	Defense         int32              `json:"defense"`
+	SpawnGraceUntil pgtype.Timestamptz `json:"spawn_grace_until"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) GetHeroByPlayer(ctx context.Context, playerID int64) (GetHeroByPlayerRow, error) {
 	row := q.db.QueryRow(ctx, getHeroByPlayer, playerID)
-	var i Hero
+	var i GetHeroByPlayerRow
 	err := row.Scan(
 		&i.ID,
 		&i.PlayerID,
@@ -79,6 +104,7 @@ func (q *Queries) GetHeroByPlayer(ctx context.Context, playerID int64) (Hero, er
 		&i.BaseSpeed,
 		&i.Attack,
 		&i.Defense,
+		&i.SpawnGraceUntil,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -147,20 +173,32 @@ func (q *Queries) ListHeroUnitsByHero(ctx context.Context, heroID int64) ([]List
 }
 
 const listHeroes = `-- name: ListHeroes :many
-SELECT id, player_id, name, current_node_id, base_speed, attack, defense, created_at
+SELECT id, player_id, name, current_node_id, base_speed, attack, defense, spawn_grace_until, created_at
 FROM heroes
 ORDER BY id
 `
 
-func (q *Queries) ListHeroes(ctx context.Context) ([]Hero, error) {
+type ListHeroesRow struct {
+	ID              int64              `json:"id"`
+	PlayerID        int64              `json:"player_id"`
+	Name            string             `json:"name"`
+	CurrentNodeID   int64              `json:"current_node_id"`
+	BaseSpeed       int32              `json:"base_speed"`
+	Attack          int32              `json:"attack"`
+	Defense         int32              `json:"defense"`
+	SpawnGraceUntil pgtype.Timestamptz `json:"spawn_grace_until"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) ListHeroes(ctx context.Context) ([]ListHeroesRow, error) {
 	rows, err := q.db.Query(ctx, listHeroes)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Hero{}
+	items := []ListHeroesRow{}
 	for rows.Next() {
-		var i Hero
+		var i ListHeroesRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.PlayerID,
@@ -169,6 +207,7 @@ func (q *Queries) ListHeroes(ctx context.Context) ([]Hero, error) {
 			&i.BaseSpeed,
 			&i.Attack,
 			&i.Defense,
+			&i.SpawnGraceUntil,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -179,6 +218,71 @@ func (q *Queries) ListHeroes(ctx context.Context) ([]Hero, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const listHeroesAtNode = `-- name: ListHeroesAtNode :many
+SELECT id, player_id, name, current_node_id, base_speed, attack, defense, spawn_grace_until, created_at
+FROM heroes
+WHERE current_node_id = $1
+ORDER BY id
+`
+
+type ListHeroesAtNodeRow struct {
+	ID              int64              `json:"id"`
+	PlayerID        int64              `json:"player_id"`
+	Name            string             `json:"name"`
+	CurrentNodeID   int64              `json:"current_node_id"`
+	BaseSpeed       int32              `json:"base_speed"`
+	Attack          int32              `json:"attack"`
+	Defense         int32              `json:"defense"`
+	SpawnGraceUntil pgtype.Timestamptz `json:"spawn_grace_until"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) ListHeroesAtNode(ctx context.Context, currentNodeID int64) ([]ListHeroesAtNodeRow, error) {
+	rows, err := q.db.Query(ctx, listHeroesAtNode, currentNodeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListHeroesAtNodeRow{}
+	for rows.Next() {
+		var i ListHeroesAtNodeRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.PlayerID,
+			&i.Name,
+			&i.CurrentNodeID,
+			&i.BaseSpeed,
+			&i.Attack,
+			&i.Defense,
+			&i.SpawnGraceUntil,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const setHeroSpawnGraceUntil = `-- name: SetHeroSpawnGraceUntil :exec
+UPDATE heroes
+SET spawn_grace_until = $2
+WHERE id = $1
+`
+
+type SetHeroSpawnGraceUntilParams struct {
+	ID              int64              `json:"id"`
+	SpawnGraceUntil pgtype.Timestamptz `json:"spawn_grace_until"`
+}
+
+func (q *Queries) SetHeroSpawnGraceUntil(ctx context.Context, arg SetHeroSpawnGraceUntilParams) error {
+	_, err := q.db.Exec(ctx, setHeroSpawnGraceUntil, arg.ID, arg.SpawnGraceUntil)
+	return err
 }
 
 const setHeroUnitQty = `-- name: SetHeroUnitQty :exec

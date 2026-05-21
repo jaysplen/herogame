@@ -12,18 +12,35 @@ import (
 )
 
 const getPlayer = `-- name: GetPlayer :one
-SELECT id, name, gold, created_at
+SELECT id, name, gold, metal, gems, coal, wood, stone, created_at
 FROM players
 WHERE id = $1
 `
 
-func (q *Queries) GetPlayer(ctx context.Context, id int64) (Player, error) {
+type GetPlayerRow struct {
+	ID        int64              `json:"id"`
+	Name      string             `json:"name"`
+	Gold      pgtype.Numeric     `json:"gold"`
+	Metal     pgtype.Numeric     `json:"metal"`
+	Gems      pgtype.Numeric     `json:"gems"`
+	Coal      pgtype.Numeric     `json:"coal"`
+	Wood      pgtype.Numeric     `json:"wood"`
+	Stone     pgtype.Numeric     `json:"stone"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) GetPlayer(ctx context.Context, id int64) (GetPlayerRow, error) {
 	row := q.db.QueryRow(ctx, getPlayer, id)
-	var i Player
+	var i GetPlayerRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.Gold,
+		&i.Metal,
+		&i.Gems,
+		&i.Coal,
+		&i.Wood,
+		&i.Stone,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -42,5 +59,40 @@ type IncrementPlayerGoldParams struct {
 
 func (q *Queries) IncrementPlayerGold(ctx context.Context, arg IncrementPlayerGoldParams) error {
 	_, err := q.db.Exec(ctx, incrementPlayerGold, arg.Delta, arg.ID)
+	return err
+}
+
+const incrementPlayerResources = `-- name: IncrementPlayerResources :exec
+UPDATE players
+SET
+    gold = gold + $1::numeric,
+    metal = metal + $2::numeric,
+    gems = gems + $3::numeric,
+    coal = coal + $4::numeric,
+    wood = wood + $5::numeric,
+    stone = stone + $6::numeric
+WHERE id = $7
+`
+
+type IncrementPlayerResourcesParams struct {
+	GoldDelta  pgtype.Numeric `json:"gold_delta"`
+	MetalDelta pgtype.Numeric `json:"metal_delta"`
+	GemsDelta  pgtype.Numeric `json:"gems_delta"`
+	CoalDelta  pgtype.Numeric `json:"coal_delta"`
+	WoodDelta  pgtype.Numeric `json:"wood_delta"`
+	StoneDelta pgtype.Numeric `json:"stone_delta"`
+	ID         int64          `json:"id"`
+}
+
+func (q *Queries) IncrementPlayerResources(ctx context.Context, arg IncrementPlayerResourcesParams) error {
+	_, err := q.db.Exec(ctx, incrementPlayerResources,
+		arg.GoldDelta,
+		arg.MetalDelta,
+		arg.GemsDelta,
+		arg.CoalDelta,
+		arg.WoodDelta,
+		arg.StoneDelta,
+		arg.ID,
+	)
 	return err
 }

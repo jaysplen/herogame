@@ -12,7 +12,7 @@ import (
 )
 
 const getCreepByNode = `-- name: GetCreepByNode :one
-SELECT id, node_id, name, unit_id, qty, alive, gold_reward
+SELECT id, node_id, name, unit_id, qty, alive, gold_reward, from_node_id, to_node_id, depart_at, arrive_at, speed_units, attack, defense, hp, grace_until
 FROM neutral_creeps
 WHERE node_id = $1
   AND alive = TRUE
@@ -29,43 +29,114 @@ func (q *Queries) GetCreepByNode(ctx context.Context, nodeID int64) (NeutralCree
 		&i.Qty,
 		&i.Alive,
 		&i.GoldReward,
+		&i.FromNodeID,
+		&i.ToNodeID,
+		&i.DepartAt,
+		&i.ArriveAt,
+		&i.SpeedUnits,
+		&i.Attack,
+		&i.Defense,
+		&i.Hp,
+		&i.GraceUntil,
 	)
 	return i, err
 }
 
 const insertCombatLog = `-- name: InsertCombatLog :one
-INSERT INTO combat_logs (hero_id, creep_id, outcome, gold_reward, log)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id, hero_id, creep_id, outcome, gold_reward, log, resolved_at
+INSERT INTO combat_logs (hero_id, creep_id, enemy_hero_id, outcome, gold_reward, converted_units, log)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, hero_id, creep_id, enemy_hero_id, outcome, gold_reward, converted_units, log, resolved_at
 `
 
 type InsertCombatLogParams struct {
-	HeroID     int64       `json:"hero_id"`
-	CreepID    pgtype.Int8 `json:"creep_id"`
-	Outcome    string      `json:"outcome"`
-	GoldReward int32       `json:"gold_reward"`
-	Log        []byte      `json:"log"`
+	HeroID         int64       `json:"hero_id"`
+	CreepID        pgtype.Int8 `json:"creep_id"`
+	EnemyHeroID    pgtype.Int8 `json:"enemy_hero_id"`
+	Outcome        string      `json:"outcome"`
+	GoldReward     int32       `json:"gold_reward"`
+	ConvertedUnits int32       `json:"converted_units"`
+	Log            []byte      `json:"log"`
 }
 
-func (q *Queries) InsertCombatLog(ctx context.Context, arg InsertCombatLogParams) (CombatLog, error) {
+type InsertCombatLogRow struct {
+	ID             int64              `json:"id"`
+	HeroID         int64              `json:"hero_id"`
+	CreepID        pgtype.Int8        `json:"creep_id"`
+	EnemyHeroID    pgtype.Int8        `json:"enemy_hero_id"`
+	Outcome        string             `json:"outcome"`
+	GoldReward     int32              `json:"gold_reward"`
+	ConvertedUnits int32              `json:"converted_units"`
+	Log            []byte             `json:"log"`
+	ResolvedAt     pgtype.Timestamptz `json:"resolved_at"`
+}
+
+func (q *Queries) InsertCombatLog(ctx context.Context, arg InsertCombatLogParams) (InsertCombatLogRow, error) {
 	row := q.db.QueryRow(ctx, insertCombatLog,
 		arg.HeroID,
 		arg.CreepID,
+		arg.EnemyHeroID,
 		arg.Outcome,
 		arg.GoldReward,
+		arg.ConvertedUnits,
 		arg.Log,
 	)
-	var i CombatLog
+	var i InsertCombatLogRow
 	err := row.Scan(
 		&i.ID,
 		&i.HeroID,
 		&i.CreepID,
+		&i.EnemyHeroID,
 		&i.Outcome,
 		&i.GoldReward,
+		&i.ConvertedUnits,
 		&i.Log,
 		&i.ResolvedAt,
 	)
 	return i, err
+}
+
+const listAliveCreeps = `-- name: ListAliveCreeps :many
+SELECT id, node_id, name, unit_id, qty, alive, gold_reward, from_node_id, to_node_id, depart_at, arrive_at, speed_units, attack, defense, hp, grace_until
+FROM neutral_creeps
+WHERE alive = TRUE
+ORDER BY id
+`
+
+func (q *Queries) ListAliveCreeps(ctx context.Context) ([]NeutralCreep, error) {
+	rows, err := q.db.Query(ctx, listAliveCreeps)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []NeutralCreep{}
+	for rows.Next() {
+		var i NeutralCreep
+		if err := rows.Scan(
+			&i.ID,
+			&i.NodeID,
+			&i.Name,
+			&i.UnitID,
+			&i.Qty,
+			&i.Alive,
+			&i.GoldReward,
+			&i.FromNodeID,
+			&i.ToNodeID,
+			&i.DepartAt,
+			&i.ArriveAt,
+			&i.SpeedUnits,
+			&i.Attack,
+			&i.Defense,
+			&i.Hp,
+			&i.GraceUntil,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const setCreepDead = `-- name: SetCreepDead :exec
@@ -76,5 +147,37 @@ WHERE id = $1
 
 func (q *Queries) SetCreepDead(ctx context.Context, id int64) error {
 	_, err := q.db.Exec(ctx, setCreepDead, id)
+	return err
+}
+
+const updateCreepMovement = `-- name: UpdateCreepMovement :exec
+UPDATE neutral_creeps
+SET
+    node_id = $1,
+    from_node_id = $2,
+    to_node_id = $3,
+    depart_at = $4,
+    arrive_at = $5
+WHERE id = $6
+`
+
+type UpdateCreepMovementParams struct {
+	NodeID     int64              `json:"node_id"`
+	FromNodeID pgtype.Int8        `json:"from_node_id"`
+	ToNodeID   pgtype.Int8        `json:"to_node_id"`
+	DepartAt   pgtype.Timestamptz `json:"depart_at"`
+	ArriveAt   pgtype.Timestamptz `json:"arrive_at"`
+	ID         int64              `json:"id"`
+}
+
+func (q *Queries) UpdateCreepMovement(ctx context.Context, arg UpdateCreepMovementParams) error {
+	_, err := q.db.Exec(ctx, updateCreepMovement,
+		arg.NodeID,
+		arg.FromNodeID,
+		arg.ToNodeID,
+		arg.DepartAt,
+		arg.ArriveAt,
+		arg.ID,
+	)
 	return err
 }

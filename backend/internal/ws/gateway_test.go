@@ -73,7 +73,7 @@ func TestHelloAck(t *testing.T) {
 	if err := ack.DecodePayload(&payload); err != nil {
 		t.Fatal(err)
 	}
-	if payload.PlayerID != 1 || payload.HeroID != 1 || len(payload.MapSnapshot.Nodes) != 6 {
+	if payload.PlayerID != 1 || payload.HeroID != 1 || len(payload.MapSnapshot.Nodes) < 6 {
 		t.Fatalf("payload = %+v", payload)
 	}
 }

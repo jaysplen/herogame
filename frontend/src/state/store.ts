@@ -7,17 +7,26 @@ import { CASTLE_GOLD_PER_MIN_DEFAULT } from "../hud/constants";
 import {
   MsgCastleTick,
   MsgCombatResolved,
+  MsgCreepState,
   MsgHelloAck,
   MsgHeroState,
   MsgMoveArrived,
   MsgMoveUpdate,
+  MsgObjectiveState,
+  MsgResourceState,
   MsgError,
 } from "../proto/types";
 import type {
+  CreepStatePayload,
+  CreepStateDTO,
   CastleTickPayload,
   CombatResolvedPayload,
   HelloAckPayload,
   HeroStatePayload,
+  ObjectiveStatePayload,
+  ResourceBagDTO,
+  ResourceNodeDTO,
+  ResourceStatePayload,
   MapSnapshot,
   MoveUpdatePayload,
 } from "../proto/messages";
@@ -36,6 +45,7 @@ export interface ConnectionSlice {
 export interface PlayerSlice {
   playerId: number | null;
   gold: number | null;
+  resources: ResourceBagDTO | null;
 }
 
 export interface CastleSlice {
@@ -59,6 +69,9 @@ interface GameState {
   hero: HeroStatePayload | null;
   castle: CastleSlice;
   map: MapSnapshot | null;
+  creeps: CreepStateDTO[];
+  resourceNodes: ResourceNodeDTO[];
+  objective: ObjectiveStatePayload | null;
   inFlight: MoveUpdatePayload | null;
   bootstrap: HelloAckPayload | null;
   lastCombat: CombatResolvedPayload | null;
@@ -81,6 +94,7 @@ const initialCastle: CastleSlice = {
 const initialPlayer: PlayerSlice = {
   playerId: null,
   gold: null,
+  resources: null,
 };
 
 function anchorFromGold(
@@ -99,6 +113,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   hero: null,
   castle: { ...initialCastle },
   map: null,
+  creeps: [],
+  resourceNodes: [],
+  objective: null,
   inFlight: null,
   bootstrap: null,
   lastCombat: null,
@@ -127,7 +144,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         };
         set({
           bootstrap: { ...ack, shopUnits: ack.shopUnits ?? [] },
-          player: { playerId: ack.playerId, gold: ack.gold },
+          player: { playerId: ack.playerId, gold: ack.gold, resources: ack.resources },
           hero: heroState,
           castle: {
             castleId: ack.castleId,
@@ -136,6 +153,9 @@ export const useGameStore = create<GameState>((set, get) => ({
           },
           goldAnchor: anchorFromGold(ack.gold, gpm, env.serverTime),
           map: ack.mapSnapshot,
+          creeps: ack.creeps ?? [],
+          resourceNodes: ack.resourceNodes ?? [],
+          objective: ack.objective ?? null,
           inFlight: ack.inFlight ?? null,
           connection: { status: "connected", error: null },
         });
@@ -150,7 +170,20 @@ export const useGameStore = create<GameState>((set, get) => ({
         const tick = decodePayload<CastleTickPayload>(env);
         const { player } = get();
         set({
-          player: { ...player, gold: tick.gold },
+          player: {
+            ...player,
+            gold: tick.gold,
+            resources: player.resources
+              ? { ...player.resources, gold: tick.gold }
+              : {
+                  gold: tick.gold,
+                  metal: 0,
+                  gems: 0,
+                  coal: 0,
+                  wood: 0,
+                  stone: 0,
+                },
+          },
           castle: {
             castleId: tick.castleId,
             gold: tick.gold,
@@ -178,6 +211,38 @@ export const useGameStore = create<GameState>((set, get) => ({
         });
         break;
       }
+      case MsgCreepState: {
+        const creeps = decodePayload<CreepStatePayload>(env);
+        set({ creeps: creeps.creeps ?? [] });
+        break;
+      }
+      case MsgResourceState: {
+        const payload = decodePayload<ResourceStatePayload>(env);
+        const { player } = get();
+        if (player.playerId === payload.playerId) {
+          set({
+            player: {
+              ...player,
+              resources: payload.resources,
+              gold: payload.resources.gold,
+            },
+            resourceNodes: payload.resourceNodes ?? [],
+            goldAnchor: anchorFromGold(
+              payload.resources.gold,
+              get().castle.goldPerMin ?? CASTLE_GOLD_PER_MIN_DEFAULT,
+              env.serverTime,
+            ),
+          });
+        } else {
+          set({ resourceNodes: payload.resourceNodes ?? [] });
+        }
+        break;
+      }
+      case MsgObjectiveState: {
+        const payload = decodePayload<ObjectiveStatePayload>(env);
+        set({ objective: payload });
+        break;
+      }
       case MsgError: {
         const err = decodePayload<ErrorPayload>(env);
         set({ lastError: err });
@@ -197,6 +262,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       hero: null,
       castle: { ...initialCastle },
       map: null,
+      creeps: [],
+      resourceNodes: [],
+      objective: null,
       inFlight: null,
       bootstrap: null,
       lastCombat: null,

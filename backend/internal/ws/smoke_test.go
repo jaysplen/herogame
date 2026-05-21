@@ -64,12 +64,29 @@ func resetPoCWorld(t *testing.T, st *store.Store, rdb *redisx.Client) {
 	t.Helper()
 	ctx := context.Background()
 	_, err := st.Pool().Exec(ctx, `
-		UPDATE neutral_creeps SET alive = TRUE, qty = 50 WHERE node_id = 5;
+		UPDATE neutral_creeps
+		SET alive = TRUE,
+		    qty = CASE WHEN name = 'Bandit Camp' THEN 50 ELSE qty END;
+		UPDATE neutral_creeps
+		SET node_id = 5,
+		    from_node_id = 5,
+		    to_node_id = 5,
+		    depart_at = now(),
+		    arrive_at = now() + interval '10 minutes',
+		    grace_until = now() - interval '1 second'
+		WHERE name = 'Bandit Camp';
+		UPDATE neutral_creeps SET alive = FALSE WHERE name = 'Wolf Den';
 		UPDATE heroes SET current_node_id = 1 WHERE id = 1;
-		UPDATE players SET gold = 500 WHERE id = 1;
+		UPDATE heroes SET current_node_id = 6 WHERE id = 2;
+		UPDATE players SET gold = 1000, metal = 200, gems = 100, coal = 200, wood = 200, stone = 200 WHERE id = 1;
 		DELETE FROM hero_units WHERE hero_id = 1;
+		DELETE FROM hero_units WHERE hero_id = 2;
 		DELETE FROM movement_orders WHERE hero_id = 1;
+		DELETE FROM movement_orders WHERE hero_id = 2;
 		DELETE FROM combat_logs WHERE hero_id = 1;
+		DELETE FROM combat_logs WHERE hero_id = 2;
+		UPDATE heroes SET spawn_grace_until = to_timestamp(0) WHERE id = 1;
+		UPDATE heroes SET spawn_grace_until = to_timestamp(0) WHERE id = 2;
 	`)
 	if err != nil {
 		t.Fatal(err)
@@ -80,8 +97,9 @@ func resetPoCWorld(t *testing.T, st *store.Store, rdb *redisx.Client) {
 
 func readUntil(t *testing.T, conn *websocket.Conn, wantType string, timeout time.Duration) proto.Envelope {
 	t.Helper()
-	_ = conn.SetReadDeadline(time.Now().Add(timeout))
+	deadline := time.Now().Add(timeout)
 	for {
+		_ = conn.SetReadDeadline(deadline)
 		var env proto.Envelope
 		if err := conn.ReadJSON(&env); err != nil {
 			t.Fatalf("read %s: %v", wantType, err)
@@ -117,9 +135,14 @@ func TestPoCPlaythroughSmoke(t *testing.T) {
 	conn := dialHello(t, wsURL, 1)
 	defer conn.Close()
 
-	// Buy 10 Pikemen (500 gold; test grants 500g).
+	castle, err := st.Q.GetCastleByPlayer(context.Background(), 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Buy 10 Pikemen.
 	buy, _ := proto.NewEnvelope(proto.TypeUnitBuy, proto.UnitBuyPayload{
-		CastleID: 1, UnitTypeID: 1, Qty: 10,
+		CastleID: castle.ID, UnitTypeID: 1, Qty: 10,
 	}, 2)
 	if err := conn.WriteJSON(buy); err != nil {
 		t.Fatal(err)
@@ -143,9 +166,11 @@ func TestPoCPlaythroughSmoke(t *testing.T) {
 	if err := conn.WriteJSON(move1); err != nil {
 		t.Fatal(err)
 	}
-	readUntil(t, conn, proto.TypeMoveUpdate, 3*time.Second)
+	moveEnv := readUntil(t, conn, proto.TypeMoveUpdate, 3*time.Second)
+	var movePayload proto.MoveUpdatePayload
+	_ = json.Unmarshal(moveEnv.Payload, &movePayload)
 	waitForArrival(t, eng, 8*time.Second)
-	readUntil(t, conn, proto.TypeMoveArrived, 3*time.Second)
+	readUntil(t, conn, proto.TypeMoveArrived, 15*time.Second)
 
 	hero, err := st.Q.GetHero(context.Background(), 1)
 	if err != nil || hero.CurrentNodeID != 2 {

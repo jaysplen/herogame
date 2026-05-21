@@ -20,6 +20,7 @@ type Client struct {
 	hub      *Hub
 	conn     *websocket.Conn
 	send     chan []byte
+	viewForPlayerID int64
 	playerID int64
 	logger   *slog.Logger
 }

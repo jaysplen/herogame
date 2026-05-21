@@ -3,6 +3,7 @@ package ws
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/herogame/backend/internal/proto"
@@ -44,6 +45,15 @@ func (h *MoveHandler) Handle(ctx context.Context, c *Client, env proto.Envelope)
 		}
 		if respawning {
 			return h.router.sendError(c, proto.CodeMoveHeroRespawning, "hero is respawning", &env.Seq)
+		}
+	}
+	if hero.SpawnGraceUntil.Valid && time.Now().UTC().Before(hero.SpawnGraceUntil.Time) {
+		targetNode, err := h.router.store.Q.GetNode(ctx, req.TargetNodeID)
+		if err != nil {
+			return err
+		}
+		if strings.ToLower(targetNode.Kind) == "creep" {
+			return h.router.sendError(c, proto.CodeMoveGracePeriod, "hero is in grace period", &env.Seq)
 		}
 	}
 
@@ -109,6 +119,15 @@ func (h *MoveHandler) Handle(ctx context.Context, c *Client, env proto.Envelope)
 		return err
 	}
 
+	if _, err := h.router.store.Q.GetResourceNodeByNode(ctx, req.TargetNodeID); err == nil {
+		_ = h.router.store.WithTx(ctx, func(q *gen.Queries) error {
+			return q.CaptureResourceNode(ctx, gen.CaptureResourceNodeParams{
+				NodeID: req.TargetNodeID,
+				OwnerPlayerID: pgtype.Int8{Int64: c.playerID, Valid: true},
+			})
+		})
+	}
+
 	h.router.broadcaster.BroadcastMoveUpdate(proto.MoveUpdatePayload{
 		HeroID:        req.HeroID,
 		FromNodeID:    hero.CurrentNodeID,
@@ -117,6 +136,7 @@ func (h *MoveHandler) Handle(ctx context.Context, c *Client, env proto.Envelope)
 		ArriveAt:      arriveAt.UnixMilli(),
 		TravelSeconds: travelSec,
 	}, env.Seq)
+	_ = h.router.broadcaster.BroadcastResourceState(ctx, c.playerID, env.Seq)
 
 	return nil
 }

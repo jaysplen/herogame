@@ -67,6 +67,11 @@ func TestArrivalResolutionOnce(t *testing.T) {
 
 	now := time.Now().UTC()
 	past := now.Add(-2 * time.Second)
+	_, _ = st.Pool().Exec(ctx, `
+		UPDATE heroes SET current_node_id = 1, spawn_grace_until = now() - interval '1 second' WHERE id = 1;
+		UPDATE neutral_creeps SET alive = FALSE;
+		DELETE FROM movement_orders WHERE hero_id = 1;
+	`)
 
 	order, err := st.Q.InsertMovementOrder(ctx, gen.InsertMovementOrderParams{
 		HeroID:      1,
