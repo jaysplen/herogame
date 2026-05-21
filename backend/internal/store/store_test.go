@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/herogame/backend/internal/economy"
 	"github.com/herogame/backend/internal/store"
 	"github.com/herogame/backend/internal/store/gen"
 	"github.com/jackc/pgx/v5"
@@ -197,8 +198,11 @@ func TestGetUnitByCode(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if u.Attack != 3 {
-		t.Fatalf("attack = %d", u.Attack)
+	// Pikeman was rebalanced to Atk 4 / Def 5 / HP 12 in
+	// migrations/00006_seed_units.sql (multi-unit roster + RPS counters).
+	// Pin to economy.PikemanAttack so the test follows future tunings.
+	if u.Attack != int32(economy.PikemanAttack) {
+		t.Fatalf("attack = %d, want %d", u.Attack, economy.PikemanAttack)
 	}
 }
 
