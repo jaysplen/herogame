@@ -1,13 +1,5 @@
--- 00005_reposition_map_nodes.sql
--- Repositions existing world-expansion nodes onto a more naturalistic
--- watercolor map layout: Ironkeep at the SW headland, Sunspire on the
--- NE plateau, forest band along the north, river/marsh along the south,
--- a central mountain ridge and crossroads.
---
--- Forward-only, idempotent. Coordinates target a 1200x820 stage with
--- a watercolor SVG background sized to match.
-
-BEGIN;
+-- +goose Up
+-- Repositions world-expansion nodes for watercolor map layout (1200x820 stage).
 
 UPDATE map_nodes SET x = 180,  y = 540 WHERE id = 1;  -- Ironkeep Castle (SW)
 UPDATE map_nodes SET x = 300,  y = 460 WHERE id = 2;  -- Moss Crossing
@@ -26,4 +18,20 @@ UPDATE map_nodes SET x = 900,  y = 540 WHERE id = 14; -- South Gate
 UPDATE map_nodes SET x = 620,  y = 440 WHERE id = 15; -- Wolf Den
 UPDATE map_nodes SET x = 760,  y = 460 WHERE id = 16; -- Mercury Marsh
 
-COMMIT;
+-- +goose Down
+UPDATE map_nodes SET x = 120,  y = 360 WHERE id = 1;
+UPDATE map_nodes SET x = 250,  y = 360 WHERE id = 2;
+UPDATE map_nodes SET x = 250,  y = 220 WHERE id = 3;
+UPDATE map_nodes SET x = 250,  y = 500 WHERE id = 4;
+UPDATE map_nodes SET x = 390,  y = 360 WHERE id = 5;
+UPDATE map_nodes SET x = 760,  y = 360 WHERE id = 6;
+UPDATE map_nodes SET x = 390,  y = 220 WHERE id = 7;
+UPDATE map_nodes SET x = 390,  y = 500 WHERE id = 8;
+UPDATE map_nodes SET x = 520,  y = 260 WHERE id = 9;
+UPDATE map_nodes SET x = 520,  y = 460 WHERE id = 10;
+UPDATE map_nodes SET x = 640,  y = 260 WHERE id = 11;
+UPDATE map_nodes SET x = 640,  y = 460 WHERE id = 12;
+UPDATE map_nodes SET x = 760,  y = 240 WHERE id = 13;
+UPDATE map_nodes SET x = 760,  y = 480 WHERE id = 14;
+UPDATE map_nodes SET x = 520,  y = 360 WHERE id = 15;
+UPDATE map_nodes SET x = 640,  y = 360 WHERE id = 16;
