@@ -53,13 +53,15 @@ func ApplyHeroVsHero(ctx context.Context, q *gen.Queries, attackerHeroID, defend
 	var attStack []hero.StackUnit
 	for _, row := range attRows {
 		attStack = append(attStack, hero.StackUnit{
-			Qty: int(row.Qty), Attack: int(row.Attack), Defense: int(row.Defense), HP: int(row.Hp),
+			UnitID: row.UnitID,
+			Qty:    int(row.Qty), Attack: int(row.Attack), Defense: int(row.Defense), HP: int(row.Hp),
 		})
 	}
 	var defStack []hero.StackUnit
 	for _, row := range defRows {
 		defStack = append(defStack, hero.StackUnit{
-			Qty: int(row.Qty), Attack: int(row.Attack), Defense: int(row.Defense), HP: int(row.Hp),
+			UnitID: row.UnitID,
+			Qty:    int(row.Qty), Attack: int(row.Attack), Defense: int(row.Defense), HP: int(row.Hp),
 		})
 	}
 
@@ -71,8 +73,12 @@ func ApplyHeroVsHero(ctx context.Context, q *gen.Queries, attackerHeroID, defend
 	if err != nil {
 		return nil, err
 	}
-	attacker := StackFromHero(attStats, attStack)
-	defender := StackFromHero(defStats, defStack)
+	// Rock-paper-scissors counters use each side's primary (largest) stack as
+	// the target identity (docs/future_features.md §1).
+	attPrimary := PrimaryUnitID(attStack)
+	defPrimary := PrimaryUnitID(defStack)
+	attacker := StackFromHeroVs(attStats, attStack, defPrimary)
+	defender := StackFromHeroVs(defStats, defStack, attPrimary)
 	result := Resolve(attacker, defender)
 
 	logJSON, err := json.Marshal(result.Log)
@@ -207,6 +213,7 @@ func ApplyAtNode(ctx context.Context, q *gen.Queries, heroID, nodeID int64) (*Ap
 	var stack []hero.StackUnit
 	for _, row := range rows {
 		stack = append(stack, hero.StackUnit{
+			UnitID:  row.UnitID,
 			Qty:     int(row.Qty),
 			Attack:  int(row.Attack),
 			Defense: int(row.Defense),
@@ -221,7 +228,6 @@ func ApplyAtNode(ctx context.Context, q *gen.Queries, heroID, nodeID int64) (*Ap
 	if err != nil {
 		return nil, err
 	}
-	attacker := StackFromHero(heroStats, stack)
 	defAtk := int(creep.Attack)
 	defDef := int(creep.Defense)
 	defHP := int(creep.Hp)
@@ -234,7 +240,11 @@ func ApplyAtNode(ctx context.Context, q *gen.Queries, heroID, nodeID int64) (*Ap
 	if defHP == 0 {
 		defHP = int(unit.Hp)
 	}
-	defender := StackFromCreep(defAtk, defDef, defHP, int(creep.Qty))
+	// Counter triangle: attacker stacks get +25% vs the creep's unit ID;
+	// the creep gets +25% if its unit counters the hero's primary stack.
+	attPrimary := PrimaryUnitID(stack)
+	attacker := StackFromHeroVs(heroStats, stack, creep.UnitID)
+	defender := StackFromCreepVs(creep.UnitID, defAtk, defDef, defHP, int(creep.Qty), attPrimary)
 	result := Resolve(attacker, defender)
 
 	logJSON, err := json.Marshal(result.Log)

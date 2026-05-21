@@ -7,11 +7,14 @@ type Stats struct {
 }
 
 // StackUnit is one row of army stack (qty of a unit type).
+// UnitID is the catalog unit row id; combat uses it to compute
+// rock-paper-scissors counter multipliers (docs/future_features.md §1).
 type StackUnit struct {
-	Qty    int
-	Attack int
+	UnitID  int64
+	Qty     int
+	Attack  int
 	Defense int
-	HP     int
+	HP      int
 }
 
 // Aggregate computes side totals for combat (game_rules.md §6.2).

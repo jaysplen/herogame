@@ -6,10 +6,12 @@ const (
 	HeroBaseSpeedDefault      = 10
 	HeroAttackDefault         = 2
 	HeroDefenseDefault        = 2
+	// Pikeman baseline stats — mirror migrations/00006_seed_units.sql so
+	// tests that pre-load a "default Pikeman" produce realistic combat math.
 	PikemanCostGold           = 50
-	PikemanAttack             = 3
-	PikemanDefense            = 2
-	PikemanHP                 = 10
+	PikemanAttack             = 4
+	PikemanDefense            = 5
+	PikemanHP                 = 12
 	PikemanUpkeepGoldPerHour  = 2.0
 	UpkeepSlowdownBase        = 10
 	DesertionPercentPerMinute = 5

@@ -3,25 +3,33 @@ import { MsgCastleBuild, MsgUnitBuy } from "../proto/types";
 import type { HeroUnitStackDTO } from "../proto/messages";
 import { useGameStore } from "../state/store";
 import { useDisplayGoldInt } from "./useDisplayGold";
+import { counterHint, unitGlyph } from "./constants";
 
 function UnitRow({
   stack,
   displayGold,
   onBuy,
+  unitNameById,
 }: {
   stack: HeroUnitStackDTO;
   displayGold: number | null;
   onBuy: (unitTypeId: number, qty: number) => void;
+  unitNameById: (id: number) => string;
 }) {
   const canBuy1 =
     displayGold != null && displayGold >= stack.costGold;
   const canBuy10 =
     displayGold != null && displayGold >= stack.costGold * 10;
+  const hint = counterHint(stack.unitId, unitNameById);
 
   return (
     <li className="army-row">
       <span className="army-name">
+        <span className="army-glyph" aria-hidden="true">
+          {unitGlyph(stack.unitId)}
+        </span>{" "}
         {stack.name} × {stack.qty}
+        {hint ? <span className="army-counter"> · {hint}</span> : null}
       </span>
       <span className="army-actions">
         <button
@@ -56,6 +64,16 @@ export function ArmyPanel() {
 
   const stacks = hero?.units ?? [];
   const shopUnits = bootstrap?.shopUnits ?? [];
+
+  // Best-effort name lookup for counter hints: prefer the hero's stack rows
+  // (always populated), fall back to the castle shop catalog, then to a stub.
+  const unitNameById = (id: number): string => {
+    const fromArmy = stacks.find((s) => s.unitId === id);
+    if (fromArmy) return fromArmy.name;
+    const fromShop = shopUnits.find((s) => s.unitId === id);
+    if (fromShop) return fromShop.name;
+    return `Unit ${id}`;
+  };
 
   const buy = (unitTypeId: number, qty: number) => {
     if (!castleId || !bootstrap) return;
@@ -97,6 +115,7 @@ export function ArmyPanel() {
             stack={stack}
             displayGold={displayGold}
             onBuy={buy}
+            unitNameById={unitNameById}
           />
         ))}
         {stacks.length === 0 ? (
@@ -113,6 +132,7 @@ export function ArmyPanel() {
                 stack={unit}
                 displayGold={displayGold}
                 onBuy={buy}
+                unitNameById={unitNameById}
               />
             ))}
           </ul>
