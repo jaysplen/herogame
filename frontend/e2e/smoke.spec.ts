@@ -33,7 +33,10 @@ test("connect, recruit, march to bandit camp, combat modal", async ({ page }) =>
   await expect(page.getByTestId("combat-modal")).toBeVisible({
     timeout: 90_000,
   });
+  // CombatModal renders "Battle — Victory" / "Battle — Defeat" (HoMM
+  // theme reskin) instead of the literal outcome words. Match either
+  // of those rather than the legacy /win|loss/i.
   await expect(page.getByTestId("combat-modal")).toContainText(
-    /win|loss/i,
+    /victory|defeat/i,
   );
 });
