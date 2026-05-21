@@ -46,15 +46,16 @@ func pathPoint(
 	return ax + (bx-ax)*t, ay + (by-ay)*t, true
 }
 
-// Sweep checks hero segments vs creep segments and forces early arrival on hit.
-//
-// The early arrival places the hero at the creep's current NodeID (the
-// encounter point) rather than the original move target, so that
-// combat.ApplyAtNode actually finds the creep at the resolved node and
-// triggers combat. Pre-fix the hero teleported to the original ToNodeID
-// and ApplyAtNode found no creep there — collisions consumed travel time
-// without producing a battle, which surfaced as "no new battles after
-// the first" once creeps started roaming.
+// Sweep checks hero segments vs creep segments and forces early arrival on
+// hit. The early arrival places the hero at the order's original ToNodeID
+// — this is "force early arrival", not "drag the hero into a fight."
+// ApplyAtNode runs after, so if the creep happens to be at that node
+// combat resolves; otherwise the hero just lands at their intended
+// destination a few ticks early. arrivals.Scheduler.ResolveOrderAt is
+// available for future mid-path-combat features but intentionally not
+// used here: routing every nearby-creep grazing into an unwanted fight
+// caused regressions (e.g. e2e smoke test hitting random roaming creeps
+// on the 1->2 trip and stealing the player's army).
 func (c *Collisions) Sweep(ctx context.Context, now time.Time) error {
 	orders, err := c.store.Q.ListInFlightMovements(ctx)
 	if err != nil || len(orders) == 0 {
@@ -108,10 +109,7 @@ func (c *Collisions) Sweep(ctx context.Context, now time.Time) error {
 			if d > economy.CreepCollisionDistance {
 				continue
 			}
-			// Resolve at the creep's current node — the actual encounter
-			// point — so combat.ApplyAtNode finds the creep instead of
-			// teleporting the hero past it to an empty destination.
-			if err := c.arrivals.ResolveOrderAt(ctx, order.ID, cr.NodeID); err != nil {
+			if err := c.arrivals.ResolveOrder(ctx, order.ID); err != nil {
 				c.log.Error("collision resolve", slog.Int64("order_id", order.ID), slog.String("error", err.Error()))
 			}
 			break
