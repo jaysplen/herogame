@@ -589,7 +589,9 @@ body {
 }
 
 .map-wrap canvas {
-  background: radial-gradient(ellipse at center, #1a2a1f 0%, #0e1612 60%, #060a08 100%);
+  /* The watercolor SVG (MapBackground component) paints the whole stage.
+     This fallback only shows if the SVG fails to load. */
+  background: radial-gradient(ellipse at center, #d9bd84 0%, #b39a64 60%, #7a6536 100%);
   border-radius: 4px;
   display: block;
 }

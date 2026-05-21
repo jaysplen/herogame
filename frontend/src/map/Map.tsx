@@ -6,6 +6,7 @@ import type { CreepStateDTO, MapNodeDTO } from "../proto/messages";
 import { useGameStore, useServerNow } from "../state/store";
 import { Edge } from "./Edge";
 import { HeroToken } from "./HeroToken";
+import { MapBackground } from "./MapBackground";
 import { Node } from "./Node";
 import {
   lerp,
@@ -182,6 +183,7 @@ export function MapView() {
       ) : null}
       <Stage width={STAGE_WIDTH} height={STAGE_HEIGHT}>
         <Layer>
+          <MapBackground width={STAGE_WIDTH} height={STAGE_HEIGHT} />
           {logicalEdges.map((e) => {
             const from = nodesById.get(e.fromNodeId);
             const to = nodesById.get(e.toNodeId);
