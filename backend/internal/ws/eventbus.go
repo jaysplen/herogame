@@ -62,6 +62,13 @@ func (e *EventBus) BroadcastCreepState(ctx context.Context, seq int64) error {
 }
 
 // PostCombat emits combat.resolved plus balance-affecting hero/castle updates.
+//
+// After a PvP fight the loser was teleported home with an empty army
+// (combat.ApplyHeroVsHero) but their client never received a refreshed
+// hero.state — only the winner's snapshot went out. We now broadcast a
+// second hero.state for the loser when their id differs from the winner's
+// so the defeated player's UI sees the teleport + cleared army instead
+// of a stale "hero still at the contested node" view.
 func (e *EventBus) PostCombat(ctx context.Context, r combat.ApplyResult, seq int64) error {
 	env, err := proto.NewEnvelope(proto.TypeCombatResolved, r.Payload, seq)
 	if err != nil {
@@ -69,6 +76,9 @@ func (e *EventBus) PostCombat(ctx context.Context, r combat.ApplyResult, seq int
 	}
 	e.Broadcast(env)
 	_ = e.bc.BroadcastHeroState(ctx, r.Payload.HeroID, seq)
+	if r.LoserHeroID != 0 && r.LoserHeroID != r.Payload.HeroID {
+		_ = e.bc.BroadcastHeroState(ctx, r.LoserHeroID, seq)
+	}
 	_ = e.bc.BroadcastCastleTick(ctx, r.CastleID, r.PlayerID, r.GoldPerMin, true, seq)
 	_ = e.bc.BroadcastResourceState(ctx, r.PlayerID, seq)
 	_ = e.bc.BroadcastObjectiveState(ctx, r.PlayerID, seq)

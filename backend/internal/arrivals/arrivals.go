@@ -74,19 +74,32 @@ func (a *Scheduler) Sweep(ctx context.Context, now time.Time) error {
 		return err
 	}
 	for _, orderID := range ids {
-		if err := a.resolveOne(ctx, orderID); err != nil {
+		if err := a.resolveOne(ctx, orderID, 0); err != nil {
 			a.log.Error("resolve arrival", slog.Int64("order_id", orderID), slog.String("error", err.Error()))
 		}
 	}
 	return nil
 }
 
-// ResolveOrder forces resolution of one movement order (e.g. mid-path creep collision).
+// ResolveOrder forces resolution of one movement order at the order's
+// original ToNodeID (e.g. emergency cleanup).
 func (a *Scheduler) ResolveOrder(ctx context.Context, orderID int64) error {
-	return a.resolveOne(ctx, orderID)
+	return a.resolveOne(ctx, orderID, 0)
 }
 
-func (a *Scheduler) resolveOne(ctx context.Context, orderID int64) error {
+// ResolveOrderAt forces early resolution of a movement order and places
+// the hero at meetingNodeID instead of the order's original destination.
+// Used by tick.Collisions when a hero's path intersects a roaming creep —
+// combat resolves at the actual meeting node, not at the unreached
+// destination, so the creep is actually present for ApplyAtNode.
+func (a *Scheduler) ResolveOrderAt(ctx context.Context, orderID int64, meetingNodeID int64) error {
+	return a.resolveOne(ctx, orderID, meetingNodeID)
+}
+
+// resolveOne marks the order arrived, places the hero, runs combat, and
+// broadcasts the follow-up envelopes. If meetingNodeID is non-zero, the
+// hero is placed there (collision case) instead of order.ToNodeID.
+func (a *Scheduler) resolveOne(ctx context.Context, orderID int64, meetingNodeID int64) error {
 	var resolved gen.MovementOrder
 	var combatResult *combat.ApplyResult
 
@@ -102,18 +115,24 @@ func (a *Scheduler) resolveOne(ctx context.Context, orderID int64) error {
 		if err != nil {
 			return err
 		}
+		// Collision interception (meetingNodeID != 0) places the hero at
+		// the meeting node so combat resolves at the actual encounter.
+		target := order.ToNodeID
+		if meetingNodeID != 0 {
+			target = meetingNodeID
+		}
 		if err := q.UpdateHeroNode(ctx, gen.UpdateHeroNodeParams{
 			ID:            order.HeroID,
-			CurrentNodeID: order.ToNodeID,
+			CurrentNodeID: target,
 		}); err != nil {
 			return err
 		}
-		combatResult, err = combat.ApplyAtNode(ctx, q, order.HeroID, order.ToNodeID)
+		combatResult, err = combat.ApplyAtNode(ctx, q, order.HeroID, target)
 		if err != nil {
 			return err
 		}
 		if combatResult == nil {
-			heroesAtNode, err := q.ListHeroesAtNode(ctx, order.ToNodeID)
+			heroesAtNode, err := q.ListHeroesAtNode(ctx, target)
 			if err != nil {
 				return err
 			}
@@ -171,10 +190,15 @@ func (a *Scheduler) resolveOne(ctx context.Context, orderID int64) error {
 	}
 
 	if combatResult != nil {
-		if combatResult.Respawn {
+		// Respawn lockout lands on whoever actually lost the fight,
+		// not on the hero whose move arrived. ApplyHeroVsHero used to
+		// always lock out the attacker even when they won the PvP.
+		if combatResult.Respawn && combatResult.LoserHeroID != 0 {
 			until := time.Now().UTC().Add(economy.RespawnLockoutSeconds * time.Second)
-			if err := a.redis.SetRespawnUntil(ctx, resolved.HeroID, until); err != nil {
-				a.log.Error("respawn lockout", slog.Int64("hero_id", resolved.HeroID), slog.String("error", err.Error()))
+			if err := a.redis.SetRespawnUntil(ctx, combatResult.LoserHeroID, until); err != nil {
+				a.log.Error("respawn lockout",
+					slog.Int64("hero_id", combatResult.LoserHeroID),
+					slog.String("error", err.Error()))
 			}
 		}
 		if follow, ok := a.bus.(SchedulerFollowUp); ok {

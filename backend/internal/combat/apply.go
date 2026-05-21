@@ -7,21 +7,27 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/herogame/backend/internal/economy"
 	"github.com/herogame/backend/internal/hero"
 	"github.com/herogame/backend/internal/proto"
-	"github.com/herogame/backend/internal/economy"
 	"github.com/herogame/backend/internal/store/gen"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // ApplyResult is state to broadcast after combat commits.
+//
+// LoserHeroID identifies the hero that lost the fight so arrivals.resolveOne
+// can apply the respawn lockout to the correct side. It's 0 in win-side
+// outcomes that have no loser (e.g. hero kills a creep — the creep has no
+// hero id to lock out).
 type ApplyResult struct {
-	Payload    proto.CombatResolvedPayload
-	Respawn    bool
-	PlayerID   int64
-	CastleID   int64
-	GoldPerMin int32
+	Payload     proto.CombatResolvedPayload
+	Respawn     bool
+	LoserHeroID int64
+	PlayerID    int64
+	CastleID    int64
+	GoldPerMin  int32
 }
 
 // ApplyHeroVsHero resolves one hero army attacking another on the same node.
@@ -180,10 +186,11 @@ func ApplyHeroVsHero(ctx context.Context, q *gen.Queries, attackerHeroID, defend
 			ConvertedUnits: converted,
 			Log:            toProtoLog(result.Log),
 		},
-		Respawn:    true,
-		PlayerID:   winningPlayerID,
-		CastleID:   castle.ID,
-		GoldPerMin: castle.GoldPerMin,
+		Respawn:     true,
+		LoserHeroID: loser,
+		PlayerID:    winningPlayerID,
+		CastleID:    castle.ID,
+		GoldPerMin:  castle.GoldPerMin,
 	}, nil
 }
 
@@ -330,20 +337,29 @@ func ApplyAtNode(ctx context.Context, q *gen.Queries, heroID, nodeID int64) (*Ap
 		return nil, err
 	}
 
+	// LoserHeroID is the player's own hero only on a loss (creep wins have
+	// no hero loser). The arrivals layer uses this to scope the respawn
+	// lockout to the hero that actually died.
+	var loserHeroID int64
+	if result.Outcome == "loss" {
+		loserHeroID = heroID
+	}
+
 	return &ApplyResult{
 		Payload: proto.CombatResolvedPayload{
-			HeroID:     heroID,
-			CreepID:    creep.ID,
-			Outcome:    result.Outcome,
-			GoldReward: goldReward,
-			Casualties: casualties,
+			HeroID:         heroID,
+			CreepID:        creep.ID,
+			Outcome:        result.Outcome,
+			GoldReward:     goldReward,
+			Casualties:     casualties,
 			ConvertedUnits: convertedUnits,
-			Log:        toProtoLog(result.Log),
+			Log:            toProtoLog(result.Log),
 		},
-		Respawn:    result.Outcome == "loss",
-		PlayerID:   h.PlayerID,
-		CastleID:   castle.ID,
-		GoldPerMin: castle.GoldPerMin,
+		Respawn:     result.Outcome == "loss",
+		LoserHeroID: loserHeroID,
+		PlayerID:    h.PlayerID,
+		CastleID:    castle.ID,
+		GoldPerMin:  castle.GoldPerMin,
 	}, nil
 }
 

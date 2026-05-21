@@ -47,6 +47,14 @@ func pathPoint(
 }
 
 // Sweep checks hero segments vs creep segments and forces early arrival on hit.
+//
+// The early arrival places the hero at the creep's current NodeID (the
+// encounter point) rather than the original move target, so that
+// combat.ApplyAtNode actually finds the creep at the resolved node and
+// triggers combat. Pre-fix the hero teleported to the original ToNodeID
+// and ApplyAtNode found no creep there — collisions consumed travel time
+// without producing a battle, which surfaced as "no new battles after
+// the first" once creeps started roaming.
 func (c *Collisions) Sweep(ctx context.Context, now time.Time) error {
 	orders, err := c.store.Q.ListInFlightMovements(ctx)
 	if err != nil || len(orders) == 0 {
@@ -100,7 +108,10 @@ func (c *Collisions) Sweep(ctx context.Context, now time.Time) error {
 			if d > economy.CreepCollisionDistance {
 				continue
 			}
-			if err := c.arrivals.ResolveOrder(ctx, order.ID); err != nil {
+			// Resolve at the creep's current node — the actual encounter
+			// point — so combat.ApplyAtNode finds the creep instead of
+			// teleporting the hero past it to an empty destination.
+			if err := c.arrivals.ResolveOrderAt(ctx, order.ID, cr.NodeID); err != nil {
 				c.log.Error("collision resolve", slog.Int64("order_id", order.ID), slog.String("error", err.Error()))
 			}
 			break
