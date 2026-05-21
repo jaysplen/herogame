@@ -10,8 +10,10 @@ Thanks for joining. This repo is set up for **human + AI agent** teams: docs are
 git clone https://github.com/jaysplen/herogame.git
 cd herogame
 cp .env.example .env          # optional; defaults match docker-compose
-make dev                      # Postgres 16 + Redis 7 + migrations
+make dev                      # Postgres 16 + Redis 7 + migrations (no sudo)
 ```
+
+**Do not use `sudo make dev`** — root cannot see your user’s `goose`/`go` install. If Docker needs elevated rights, add your user to the `docker` group instead.
 
 **Terminal 1 — game server (must have WebSocket):**
 

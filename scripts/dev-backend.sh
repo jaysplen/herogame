@@ -6,6 +6,29 @@ export DATABASE_URL="${DATABASE_URL:-postgres://herogame:herogame@localhost:5432
 export REDIS_URL="${REDIS_URL:-redis://localhost:6379/0}"
 export HTTP_ADDR="${HTTP_ADDR:-:8080}"
 
+# WSL often sets XDG_RUNTIME_DIR=/run/user/1000 but that path does not exist.
+# Snap Go then fails: mkdir: cannot create directory '/run/user/1000/'.
+if [[ -z "${XDG_RUNTIME_DIR:-}" || ! -d "${XDG_RUNTIME_DIR}" || ! -w "${XDG_RUNTIME_DIR}" ]]; then
+  export XDG_RUNTIME_DIR="/tmp/xdg-runtime-$(id -u)"
+fi
+mkdir -p "$XDG_RUNTIME_DIR"
+chmod 700 "$XDG_RUNTIME_DIR" 2>/dev/null || true
+
+pick_go() {
+  local g
+  for g in /usr/local/go/bin/go "$HOME/go/bin/go" "$HOME/.local/go-sdk/bin/go"; do
+    [[ -n "$g" && -x "$g" ]] || continue
+    echo "$g"
+    return 0
+  done
+  command -v go 2>/dev/null || true
+}
+GO_BIN="$(pick_go || true)"
+if [[ -z "${GO_BIN:-}" ]]; then
+  echo "go not found. Install Go 1.22+ (prefer /usr/local/go or snap install go --classic)."
+  exit 1
+fi
+
 ws_code() {
   curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:8080/ws" 2>/dev/null || echo "000"
 }
@@ -25,5 +48,10 @@ if curl -sf "http://127.0.0.1:8080/healthz" >/dev/null 2>&1; then
 fi
 
 cd "$ROOT/backend"
-echo "Starting go server on ${HTTP_ADDR} (DATABASE_URL set, /ws enabled)..."
-exec go run ./cmd/server
+BIN="$ROOT/backend/bin/herogame-server"
+echo "Starting game server on ${HTTP_ADDR} (DATABASE_URL set, /ws enabled)..."
+if [[ ! -x "$BIN" ]] || [[ cmd/server/main.go -nt "$BIN" ]]; then
+  echo "Building $BIN ..."
+  "$GO_BIN" build -o "$BIN" ./cmd/server
+fi
+exec "$BIN"

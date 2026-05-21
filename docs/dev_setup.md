@@ -32,6 +32,10 @@ cp .env.example .env          # optional; defaults match docker-compose
 make dev                      # postgres:16 + redis:7, then migrations if present
 ```
 
+Run **`make dev` without `sudo`**. Under sudo, `goose` and `go` from your user profile are not on PATH. If Docker permission errors occur, add your user to the `docker` group rather than using sudo.
+
+**Snap Go + `make server`:** If you see `XDG_RUNTIME_DIR` / `permission denied`, the dev script sets a fallback under `/tmp` and builds `backend/bin/herogame-server`. Prefer a non-snap Go when possible: `sudo snap install go --classic` or install from https://go.dev/dl/.
+
 Verify services:
 
 ```bash

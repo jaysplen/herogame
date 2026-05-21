@@ -11,9 +11,11 @@ endif
 DATABASE_URL ?= postgres://herogame:herogame@localhost:5432/herogame?sslmode=disable
 REDIS_URL ?= redis://localhost:6379/0
 GOOSE_DIR ?= backend/migrations
-# Prefer goose on PATH; fall back to $(go env GOPATH)/bin after `go install .../goose@latest`
-GOOSE ?= $(shell command -v goose 2>/dev/null || echo "$(shell go env GOPATH)/bin/goose")
-export PATH := $(shell go env GOPATH)/bin:$(PATH)
+# Real user home when invoked via sudo (goose is installed in ~user/go/bin, not /root)
+REAL_HOME := $(if $(SUDO_USER),$(shell getent passwd $(SUDO_USER) 2>/dev/null | cut -d: -f6),$(HOME))
+GOOSE_PATHS := $(REAL_HOME)/go/bin/goose $(shell go env GOPATH 2>/dev/null)/bin/goose
+GOOSE_BIN := $(firstword $(shell command -v goose 2>/dev/null) $(foreach p,$(GOOSE_PATHS),$(wildcard $(p))))
+export PATH := $(REAL_HOME)/go/bin:$(shell go env GOPATH 2>/dev/null)/bin:$(PATH)
 
 ## server: run game server on :8080 (requires make dev for Postgres/Redis)
 server:
@@ -52,15 +54,31 @@ migrate:
 		echo "Skipping migrations: $(GOOSE_DIR) not found (complete ALPHA-002 first)."; \
 		exit 0; \
 	fi; \
-	command -v $(GOOSE) >/dev/null 2>&1 || { \
-		echo "goose not found. Install: go install github.com/pressly/goose/v3/cmd/goose@latest"; \
-		exit 1; \
+	run_goose() { \
+		if [ -n "$(GOOSE_BIN)" ] && [ -x "$(GOOSE_BIN)" ]; then \
+			"$(GOOSE_BIN)" "$$@"; \
+		elif command -v goose >/dev/null 2>&1; then \
+			goose "$$@"; \
+		elif command -v go >/dev/null 2>&1; then \
+			go run github.com/pressly/goose/v3/cmd/goose@latest "$$@"; \
+		else \
+			echo "goose not found and go not on PATH."; \
+			echo "Install: go install github.com/pressly/goose/v3/cmd/goose@latest"; \
+			echo "Add \$$(go env GOPATH)/bin to PATH, or run make dev without sudo."; \
+			exit 1; \
+		fi; \
 	}; \
-	$(GOOSE) -dir $(GOOSE_DIR) postgres "$(DATABASE_URL)" up
+	run_goose -dir $(GOOSE_DIR) postgres "$(DATABASE_URL)" up
 
 sqlc:
 	cd backend && sqlc generate
 
 migrate-status:
-	@command -v $(GOOSE) >/dev/null 2>&1 || { echo "goose not found"; exit 1; }
-	$(GOOSE) -dir $(GOOSE_DIR) postgres "$(DATABASE_URL)" status
+	@set -e; \
+	run_goose() { \
+		if [ -n "$(GOOSE_BIN)" ] && [ -x "$(GOOSE_BIN)" ]; then "$(GOOSE_BIN)" "$$@"; \
+		elif command -v goose >/dev/null 2>&1; then goose "$$@"; \
+		elif command -v go >/dev/null 2>&1; then go run github.com/pressly/goose/v3/cmd/goose@latest "$$@"; \
+		else echo "goose/go not found"; exit 1; fi; \
+	}; \
+	run_goose -dir $(GOOSE_DIR) postgres "$(DATABASE_URL)" status
